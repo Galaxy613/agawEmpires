@@ -1,0 +1,18 @@
+Empire Name: (NOT YOUR USERNAME)
+Prefered Research Topic:
+
+You have 5 points to spare, place them where ever you want, if you want I can deduct up to -2 from any field to add to another field. I will add or subtract these amounts weighted from the real values..
+[RES_ECONOMY] = 0
+Increases the amount of money you get from systems.
+[RES_SHIPBUILDING] = 0
+Improves how fast you can build ships.
+[RES_FLEETWEAPONS] = 0
+Improves how well your ships fight systems and other fleets.
+[RES_FUELRANGE] = 0
+Extends the range your ships can fly from your worlds.
+[RES_RADARRANGE] = 0
+Determines how far you can see other fleets and how close you have to be to see their strengths.
+[RES_FLEETSPEED] = 0
+Dictates how fast your fleets can fly.
+[RES_PLANETARYDEFENSE] = 0
+Improves how well your ships defend your systems.
