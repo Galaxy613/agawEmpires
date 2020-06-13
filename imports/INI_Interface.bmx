@@ -32,8 +32,7 @@ Type INI_File
 		Return 0
 	End Method
 	
-	Method ItEx:Int(Name:String, group:String = "") 	' Just a short-hand version to
-														' keep If statements shorter
+	Method exists:Int(Name:String, group:String = "")
 		Return ItemExists(Name, Group)
 	End Method
 	
@@ -89,6 +88,14 @@ Type INI_File
 	'#End Region
 	
 	'#Region Editing Data
+	Method set(name:String, data:String, group:String = "")
+		if exists(name, group) Then
+			ModifyItem(name, data, group)
+		Else
+			AddItem(name, data, group)
+		EndIf
+	EndMethod
+	
 	Method ModifyItem(name:String, data:String, group:String = "")
 		Local iItem:INI_Item = Null
 		
@@ -101,7 +108,7 @@ Type INI_File
 		Next
 	End Method
 	
-	Method AddItem:INI_Item(name:String, data:String, group:String = "")
+	Method AddItem:INI_Item(name:String, data:String, group:String = "") ' #TODO merge with ModifyItem and rename to "set"
 		Local tmp:INI_Item = INI_Item.Create(name, data, group)
 		Local tempStr:String
 		Local NewGroup = True
@@ -204,6 +211,14 @@ Type INI_File
 	End Function
 	'#End Region
 End Type
+
+Function OpenINI:INI_File(filename:String)
+	If FileType(filename) = 0 Then
+		return CreateINI(filename)
+	EndIf
+	
+	return LoadINI(filename)
+EndFunction
 
 Function LoadINI:INI_File(filename:String)
 	Return INI_File.Load(filename:String)

@@ -1,10 +1,22 @@
+Rem
+
+This is just a fancy way to display messages to the client user.
+
+end rem
+
 Import "toolbox.bmx"
 
 Type _Msg
 	Field txt:String = "", clr = 0, ms:Int
 	Global cmax:Int = 255, cmin:Int = 96
 	
-	Method s:_Msg(_txt$,_clr=0) ; txt = _txt ; clr = _clr ; ms = MilliSecs() ; Return Self ; End Method
+	Method s:_Msg(_txt$,_clr=0)
+		txt = _txt
+		clr = _clr
+		ms = MilliSecs()
+		Return Self
+	End Method
+	
 	Method _setColor() ' setColor
 		Select clr
 			Case 1
@@ -290,7 +302,7 @@ Type sTextBox
 			Case 8 ' BackSpace
 				currentString = currentString[..currentString.length-1]
 			
-				Rem
+				Rem Apparently I didn't want the rest of this functionality? KWN 6/2020
 			Case 13 ' Enter
 				arg = ""
 				cmd = ""

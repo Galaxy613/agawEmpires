@@ -6,9 +6,21 @@ Import brl.linkedlist
 Import brl.glmax2d
 
 Import "imports/sfTCP.bmx"
+Import "imports/INI_Interface.bmx"
 
 SeedRnd MilliSecs()
 Global currentLag = 0
+
+Global settingsIni:INI_File = OpenINI("server-settings.ini")
+
+If FileType("server-settings.ini") = 0 Then
+	Notify( "Creating 'server-settings.ini' and closing, edit it to change defaults." )
+	settingsIni.set("game_id", "100")
+	settingsIni.set("server_port", DEFAULTPORT)
+	
+	settingsIni.save("server-settings.ini")
+	End
+EndIf
 
 ?Threaded
 Global networkMutex:TMutex = CreateMutex()
@@ -17,7 +29,7 @@ Local thread:TThread = CreateThread(InputThread, "")
 Global endInputThreadBool = False
 Try
 ?' Not Threaded
-AppTitle = "A Galaxy At War: Empires ::: Alpha Test ::: Server"
+AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Server"
 Graphics 480, 240
 '?
 server = New TServer.Create(TSocket.CreateTCP(), DEFAULTPORT)
@@ -30,7 +42,7 @@ End If
 
 ? Not Threaded
 
-curGame.gID = 102
+curGame.gID = settingsIni.GetInteger("game_id")
 If Not curGame.LoadFromFile()
 	curGame.CreateStarfield(0, 0, 200, 100, 2)
 '	curGame.CreateStarfield(0, 0, 50, 50)
@@ -44,7 +56,7 @@ If Not curGame.LoadFromFile()
 EndIf
 ?
 
-Global playGame = False
+Global playGame = False ''GH#6 How is this different than server.gamePaused???
 If curGame Then If curGame.players.Count() > 2 Then
 	playGame = True
 End If
@@ -148,6 +160,7 @@ thread.wait() '' Wait for it to DIE
 ?
 If server Then server.Disconnect() ;TPrint "[INFO] Disconnected Properly!"
 curGame.SaveToFile
+settingsIni.save("server-settings.ini")
 End
 ''---------------'''------------------------'''''----------------------------'''-------------
 
@@ -174,7 +187,10 @@ Function InputThread:Object(data:Object)
 				
 			Case "setport"
 				networkMutex.Lock()
-				If command.Length > 1 Then DEFAULTPORT = Int(command[1])
+				If command.Length > 1 Then
+					DEFAULTPORT = Int(command[1])
+					settingsIni.set("server_port", DEFAULTPORT)
+				EndIf
 				networkMutex.Unlock()
 				
 			Case "restart"
@@ -222,6 +238,7 @@ Function InputThread:Object(data:Object)
 					curGame.SaveToFile()
 					curGame = New TGame
 					curGame.gID = Int(command[1])
+					settingsIni.set("game_id", curGame.gID)
 					curGame.LoadFromFile()
 				Else
 					TPrint "[Game] Unrecongized command argument amount. Expecting 1 arguments"
@@ -232,6 +249,7 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				If command.Length = 2 Then
 					curGame.gID = Int(command[1])
+					settingsIni.set("game_id", curGame.gID)
 				EndIf
 				curGame.SaveToFile()
 				TPrint "[Saved]"
@@ -324,7 +342,7 @@ Function InputThread:Object(data:Object)
 				End If
 				networkMutex.Unlock()
 				
-			Case "ban"
+			Case "ban" ' Ban given username for reason
 				networkMutex.Lock()
 				If command.Length = 2 Then
 					command[1] = Account.cleanName(command[1])
@@ -340,7 +358,7 @@ Function InputThread:Object(data:Object)
 				End If
 				networkMutex.Unlock()
 				
-			Case "kick"
+			Case "kick" ' Kick given username
 				networkMutex.Lock()
 				Local reason:String = ""
 				If command.Length <= 3
@@ -355,7 +373,7 @@ Function InputThread:Object(data:Object)
 				End If
 				networkMutex.Unlock()
 				
-			Case "list"
+			Case "list" ' list currently connected client names
 				networkMutex.Lock()
 				For Client:TServerClient = EachIn server.m_clients
 					cilentNames:+Client.name + " "
@@ -363,7 +381,7 @@ Function InputThread:Object(data:Object)
 				TPrint "[INFO] " + server.m_clients.Count() + " Clients Connected: " + cilentNames
 				networkMutex.Unlock()
 				
-			Case "alist"
+			Case "alist" ' account list
 				networkMutex.Lock()
 				For Local acc:Account = EachIn Account.accountList
 					cilentNames:+acc.name + " "
@@ -372,7 +390,7 @@ Function InputThread:Object(data:Object)
 				Print cilentNames
 				networkMutex.Unlock()
 				
-			Case "vlist"
+			Case "vlist" ' verbose list of currently connected client names
 				networkMutex.Lock()
 				Local cnt:Int = 0
 				For client:TServerClient = EachIn server.m_clients

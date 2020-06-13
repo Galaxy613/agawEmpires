@@ -3,6 +3,7 @@ Strict
 Import "imports/sfTCP.bmx"
 Import "imports/clientChatDisplay.bmx"
 Import "imports/RequestText.bmx"
+Import "imports/INI_Interface.bmx"
 
 Incbin "OCRAEXT.TTF"
 Incbin "art/BottomLeftPanel.png"
@@ -11,27 +12,35 @@ Incbin "art/menubutton_down.png"
 Incbin "art/topBar.png"
 Incbin "art/windowbackground.png"
 
-AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
-Select Proceed("Do you want to SuperSize That? Yes = 1600x900, No = 1280x720, Cancel = 1080x720 or Exit")
-	Case 1
-		scnx = 1600
-		scny = 900
-	Case 0
-		scnx = 1280
-		scny = 720
-		Default
-		If Confirm("You sure? I could set the screen size to 1080x700 if you wanna?") Then
-			scnx = 1080
-			scny = 700
-		Else
-			End
-		End If
-End Select
-
-Graphics(scnx, scny, 0)
-SetBlend ALPHABLEND
 Global mainChat:sChatHandler = New sChatHandler
 Global attacheUpdates:sChatHandler = New sChatHandler
+
+Global settingsIni:INI_File = OpenINI("settings.ini")
+
+If FileType("settings.ini") = 0 Then
+	Notify( "Setting resolution to 1280x720. Modify your settings by opening 'settings.ini'!" )
+	
+	settingsIni.set("screen_width", 1280)
+	settingsIni.set("screen_height", 720)
+	settingsIni.set("server_ip", "127.0.0.1")
+	settingsIni.set("server_port", DEFAULTPORT)
+	
+	settingsIni.save("settings.ini")
+EndIf
+
+scnx = settingsIni.GetInteger( "screen_width" )
+scny = settingsIni.GetInteger( "screen_height" )
+mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip" ))
+mainChat.NewVariable("port", settingsIni.GetString( "server_port" ))
+Local screenMode:int = 0
+If settingsIni.ItemExists("screen_mode") Then
+	screenMode = settingsIni.GetInteger( "screen_mode" )
+EndIf
+
+AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
+
+Graphics(scnx, scny, screenMode)
+SetBlend ALPHABLEND
 mainChat.enabled = False
 Global stdFont:TImageFont = LoadImageFont("incbin::OCRAEXT.TTF", 12)
 Global medFont:TImageFont = LoadImageFont("incbin::OCRAEXT.TTF", 24)
@@ -41,7 +50,10 @@ SetImageFont stdFont
 Global usernameCH:sTextBox = New sTextBox
 Global passwordCH:sTextBox = New sTextBox
 usernameCH.Prompttxt = "Username: "
-usernameCH.currentString = tb.Text.FileGetLine("player.txt", 0)
+usernameCH.currentString = ""
+If settingsIni.ItemExists("user_name") Then
+	usernameCH.currentString = settingsIni.GetInteger( "user_name" )
+EndIf
 If usernameCH.currentString Then
 	passwordCH.enabled = True
 Else
@@ -56,12 +68,8 @@ Global mouseDragging = False
 Global selectedSystem:TSystem = Null, targetSystem:TSystem = Null, selectedShips:Int = 0, selectedFleet:TFleet = Null, totalships = 0
 Global bottomLeftWindow:Int = 0, topLeftChat:Int = 0
 
-'mainChat.NewVariable("main", "76.100.11.244")
-mainChat.NewVariable("main", "127.0.0.1")
-mainChat.NewVariable("port", DEFAULTPORT)
-
 Global wasConnected = False, justConnected = False, justFinishedFirstSync = False, hasFinishedFirstSync = False
-If Not Connect(mainChat.GetVariable("Main".tolower())._var, Int(mainChat.GetVariable("port")._var)) Then
+If Not Connect(mainChat.GetVariable("server_ip".tolower())._var, Int(mainChat.GetVariable("port")._var)) Then
 	client = Null
 EndIf
 
@@ -79,6 +87,7 @@ If client Then
 	If client.Connected() Then client.SendPacket(Packet.ID_MESSAGESELF, "says Goodbye!")
 	client.Close()
 End If
+settingsIni.save("settings.ini")
 End '''''''''''''''''''''```````````'`'`'`'`'`''`'`''`''`'`''`'`'`''`````'`'`'`'`'`''`'`''`''`'`''`'`'`''`````'`'`'`'`'`''`'`''`''`'`''`'`'`''`
 
 Function DoMain()
@@ -109,7 +118,7 @@ Function DoMain()
 					EndIf
 					If Not client.Connected() Then client.Close() ; client = Null ; lastConnectTry = MilliSecs()
 				Else
-					If lastConnectTry - MilliSecs() < - 5000 Then If Not Connect(mainChat.GetVariable("Main".tolower())._var,  ..
+					If lastConnectTry - MilliSecs() < - 5000 Then If Not Connect(mainChat.GetVariable("server_ip".tolower())._var,  ..
 							Int(mainChat.GetVariable("port")._var)) Then
 							client = Null
 							lastConnectTry = MilliSecs()
@@ -229,7 +238,7 @@ Function DoLoginScreen()
 		End If
 		If usernameCH.currentString <> "" And passwordCH.currentString <> "" Then
 			client.SendLogin(usernameCH.currentString, passwordCH.currentString)
-			tb.Text.FileWriteLine("player.txt", usernameCH.currentString)
+			settingsIni.set("user_name", usernameCH.currentString)
 			passwordCH.currentString = ""
 			usernameCH.enabled = False
 			passwordCH.enabled = False
@@ -292,10 +301,10 @@ Function DoLoginScreen()
 	SetImageFont stdFont
 	If client
 		SetColor 97, 255, 97
-		tb.Draw.CenteredText "Connected to " + mainChat.GetVariable("Main".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), scnx / 2, tmpY - 32
+		tb.Draw.CenteredText "Connected to " + mainChat.GetVariable("server_ip".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), scnx / 2, tmpY - 32
 	Else
 		SetColor 255, 97, 97
-		tb.Draw.CenteredText "Connecting to " + mainChat.GetVariable("Main".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), scnx / 2, tmpY - 32
+		tb.Draw.CenteredText "Connecting to " + mainChat.GetVariable("server_ip".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), scnx / 2, tmpY - 32
 	End If
 	SetColor 255, 255, 255
 End Function
@@ -337,7 +346,7 @@ Function DoSyncScreen()
 	SetImageFont stdFont
 	If client
 		SetColor 97, 255, 97
-		tb.Draw.CenteredText "Connected to " + mainChat.GetVariable("Main".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), tmpX, tmpY - 32
+		tb.Draw.CenteredText "Connected to " + mainChat.GetVariable("server_ip".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), tmpX, tmpY - 32
 	End If
 	SetColor 255, 255, 255
 End Function

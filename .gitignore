@@ -2,3 +2,6 @@
 .vscode/
 *.exe
 game*.txt
+*settings.ini
+player.txt
+users.txt
