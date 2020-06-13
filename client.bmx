@@ -11,7 +11,7 @@ Incbin "art/menubutton_down.png"
 Incbin "art/topBar.png"
 Incbin "art/windowbackground.png"
 
-AppTitle = "A Galaxy At War: Empires ::: Alpha Test ::: Client"
+AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
 Select Proceed("Do you want to SuperSize That? Yes = 1600x900, No = 1280x720, Cancel = 1080x720 or Exit")
 	Case 1
 		scnx = 1600

@@ -1,12 +1,6 @@
 Rem
 '---------------------------------------------------------------------------------------------------
-Explorer HOG Engine - By Subsoap
-Lead Programmer - Karl Nyborg | Company Head - Brian Kramer
 
-Order: 08
-
-	NOT FOR FREE USE. FOR USE BY SUBSOAP ONLY OR WITH PROPER LICENSE.
-	
 	File: INI_Interface.bmx
 	Purpose: Saving/Loading, Phrases INI Files for use inside of games and applications
 
@@ -14,7 +8,6 @@ Order: 08
 End Rem
 
 Type INI_File
-	'Global 
 	
 	Field Filename:String
 	Field Groups:TList = CreateList()

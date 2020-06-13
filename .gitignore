@@ -1,0 +1,4 @@
+.bmx/
+.vscode/
+*.exe
+game*.txt
