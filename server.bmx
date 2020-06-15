@@ -178,6 +178,71 @@ Function InputThread:Object(data:Object)
 		Local command:String[] = Getinput.Split(" ")
 		Print CurrentDate() + " " + CurrentTime() + ": " + Getinput
 		Select Lower(command[0])
+			Case "help"
+				networkMutex.Lock()
+				If command.Length > 1 Then
+					Select command[1]
+					Case ""
+						TPrint "exit"
+					Case ""
+						TPrint "setport"
+					Case ""
+						TPrint "restart"
+					Case ""
+						TPrint "togglegame"
+					Case ""
+						TPrint "loadgame"
+					Case ""
+						TPrint "savegame"
+					Case ""
+						TPrint "createstarfield"
+					Case ""
+						TPrint "randomstarfield"
+					Case ""
+						TPrint "say"
+					Case ""
+						TPrint "newacc"
+					Case ""
+						TPrint "changepass"
+					Case ""
+						TPrint "setstatus"
+					Case ""
+						TPrint "ban"
+					Case ""
+						TPrint "kick"
+					Case ""
+						TPrint "list"
+					Case ""
+						TPrint "alist"
+					Case ""
+						TPrint "vlist"
+					Default
+						TPrint "TODO"
+					EndSelect
+				Else
+					Local cmds : String = ""
+					cmds = cmds + "exit" + ", "
+					cmds = cmds + "setport" + ", "
+					cmds = cmds + "restart" + ", "
+					cmds = cmds + "togglegame" + ", "
+					cmds = cmds + "loadgame" + ", "
+					cmds = cmds + "savegame" + ", "
+					cmds = cmds + "createstarfield" + ", "
+					cmds = cmds + "randomstarfield" + ", "
+					cmds = cmds + "say" + ", "
+					cmds = cmds + "newacc" + ", "
+					cmds = cmds + "changepass" + ", "
+					cmds = cmds + "setstatus" + ", "
+					cmds = cmds + "ban" + ", "
+					cmds = cmds + "kick" + ", "
+					cmds = cmds + "list" + ", "
+					cmds = cmds + "alist" + ", "
+					cmds = cmds + "vlist"
+				EndIf
+				
+				TPrint "Commands: " + cmds
+				networkMutex.Unlock()
+			
 			Case "setlag"
 				networkMutex.Lock()
 				If command.Length > 1 Then currentLag = Int(command[1])
