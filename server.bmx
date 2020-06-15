@@ -183,93 +183,95 @@ Function InputThread:Object(data:Object)
 			Case "help"
 				networkMutex.Lock()
 				If command.Length > 1 Then
-					Select command[1]
+					Select Lower(command[1])
 					Case "exit"
 						TPrint "exit"
 						TPrint "Description: Exits the server safely."
 					Case "setlag"
-						TPrint "setlag lagMs"
+						TPrint "setLag lagMs"
 						TPrint "Description: Set the milliseconds between server ticks."
 					Case "setport"
-						TPrint "setport port"
+						TPrint "setPort port"
 						TPrint "Description: Set the server's port. Will NOT automatically restart the server."
 					Case "restart"
 						TPrint "restart"
 						TPrint "Description: Restarts the server."
 					Case "togglegame"
-						TPrint "togglegame"
+						TPrint "toggleGame"
 						TPrint "Description: Toggles whether the game is paused."
 					Case "loadgame"
-						TPrint "loadgame gameId"
+						TPrint "loadGame gameId"
 						TPrint "Description: Saves the current game ID and loads the given game ID."
 					Case "savegame"
-						TPrint "savegame [gameId]"
+						TPrint "saveGame [gameId]"
 						TPrint "Description: Saves the current game ID or if given a different game ID, sets the game ID and then saves."
 					Case "createstarfield"
-						TPrint "createstarfield numOfStars:Int, maxDist:Float, [minDist:Float = 5, [x = 0, y = 0]]"
+						TPrint "createStarfield numOfStars:Int, maxDist:Float, [minDist:Float = 5, [x = 0, y = 0]]"
 						TPrint "Description: Creates a blob of stars around x and y."
 					Case "randomstarfield"
-						TPrint "randomstarfield [maxPostitionOffset, [minNumberOfStars, maxNumberOfStars, minMaxDist, maxMaxDist]]"
+						TPrint "randomStarfield [maxPostitionOffset, [minNumberOfStars, maxNumberOfStars, minMaxDist, maxMaxDist]]"
 						TPrint "Description: Creates a random blob of stars. Defaults to maxPostitionOffset=100, minNumberOfStars=20, maxNumberOfStars=30, minMaxDist=15, maxMaxDist=35"
 					Case "creategalaxy" 
-						TPrint "NOT IMPLEMENTED" ''' TODO #11
+						TPrint "createGalaxy -- NOT IMPLEMENTED" ''' TODO #11
 						Continue ' CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0)
 						TPrint "Description: "
 					Case "say"
 						TPrint "say [...]"
 						TPrint "Description: Broadcasts whatever you want to say to all users."
 					Case "newacc"
-						TPrint "newacc username, password"
+						TPrint "newAcc username, password"
 						TPrint "Description: Registers a new account. Password will automatically be encoded with MD5."
 					Case "changepass"
-						TPrint "changepass username, password"
+						TPrint "changePass username, password"
 						TPrint "Description: Overwrites the given username's password. Password will automatically be encoded with MD5."
 					Case "setstatus"
-						TPrint "setstatus username, status:Int"
+						TPrint "setStatus username, status:Int"
 						TPrint "Description: Sets the status of the given username. Known status: -1 Banned, 0 Normal, 1337 Admin"
 					Case "ban"
 						TPrint "ban username"
-						TPrint "Description: "
+						TPrint "Description: Bans the given user and kicks them."
 					Case "kick"
 						TPrint "kick username"
-						TPrint "Description: "
+						TPrint "Description: Kicks the given user from the server."
 					Case "list"
 						TPrint "list"
 						TPrint "Description: Lists currently connected users."
 					Case "alist"
-						TPrint "alist"
+						TPrint "aList"
 						TPrint "Description: Lists the currently registered users."
 					Case "vlist"
-						TPrint "vlist"
+						TPrint "vList"
 						TPrint "Description: Verbose version of 'list'."
 					' Case ""
 					' 	TPrint ""
 					' 	TPrint "Description: "
 					Default
-						TPrint "TODO"
+						TPrint "Unrecognized command: "+command[1]
 					EndSelect
 				Else
 					Local cmds : String = ""
 					cmds = cmds + "exit" + ", "
-					cmds = cmds + "setport" + ", "
+					cmds = cmds + "setPort" + ", "
 					cmds = cmds + "restart" + ", "
-					cmds = cmds + "togglegame" + ", "
-					cmds = cmds + "loadgame" + ", "
-					cmds = cmds + "savegame" + ", "
-					cmds = cmds + "createstarfield" + ", "
-					cmds = cmds + "randomstarfield" + ", "
+					cmds = cmds + "toggleGame" + ", "
+					cmds = cmds + "loadGame" + ", "
+					cmds = cmds + "saveGame" + ", "
+					cmds = cmds + "createStarfield" + ", "
+					cmds = cmds + "randomStarfield" + ", "
+					'cmds = cmds + "createGalaxy" + ", " ' TODO #11
 					cmds = cmds + "say" + ", "
-					cmds = cmds + "newacc" + ", "
-					cmds = cmds + "changepass" + ", "
-					cmds = cmds + "setstatus" + ", "
+					cmds = cmds + "newAcc" + ", "
+					cmds = cmds + "changePass" + ", "
+					cmds = cmds + "setStatus" + ", "
 					cmds = cmds + "ban" + ", "
 					cmds = cmds + "kick" + ", "
 					cmds = cmds + "list" + ", "
-					cmds = cmds + "alist" + ", "
-					cmds = cmds + "vlist"
+					cmds = cmds + "aList" + ", "
+					cmds = cmds + "vList"
+					
+					TPrint "Commands: " + cmds
 				EndIf
 				
-				TPrint "Commands: " + cmds
 				networkMutex.Unlock()
 			
 			Case "setlag"
@@ -462,7 +464,7 @@ Function InputThread:Object(data:Object)
 				Local reason:String = ""
 				If command.Length <= 3
 					If command.Length = 3 Then reason = command[2]
-					For Local Client:TServerClient = EachIn server.m_clients
+					For Client:TServerClient = EachIn server.m_clients
 						If Client.name.ToLower() = command[1].ToLower() Then
 							server.Kick Client, reason
 						End If
