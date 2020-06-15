@@ -1,4 +1,5 @@
 Global curGame:TGame = New TGame 'Null
+
 Type TGame
 	Field systems:TList = CreateList()
 	Field gID:Int = 0 'MilliSecs() / 5000 '
