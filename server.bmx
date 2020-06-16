@@ -178,6 +178,7 @@ Function InputThread:Object(data:Object)
 		Getinput:String = Input(data.ToString())
 		Local cilentNames:String = ""
 		Local command:String[] = Getinput.Split(" ")
+		Local Client:TServerClient
 		Print CurrentDate() + " " + CurrentTime() + ": " + Getinput
 		Select Lower(command[0])
 			Case "help"
@@ -445,7 +446,7 @@ Function InputThread:Object(data:Object)
 					If Account.Find(command[1]) <> Null Then
 						Account.Find(command[1]).stat = -1
 						Account.SaveToFile()
-						For Local Client:TServerClient = EachIn server.m_clients
+						For Client = EachIn server.m_clients
 							If Client.name.ToLower() = command[1].ToLower() Then
 								server.Kick Client, "Banned"
 							End If
@@ -464,7 +465,7 @@ Function InputThread:Object(data:Object)
 				Local reason:String = ""
 				If command.Length <= 3
 					If command.Length = 3 Then reason = command[2]
-					For Client:TServerClient = EachIn server.m_clients
+					For Client = EachIn server.m_clients
 						If Client.name.ToLower() = command[1].ToLower() Then
 							server.Kick Client, reason
 						End If
