@@ -244,6 +244,7 @@ Function InputThread:Object(data:Object)
 				Else
 					Local cmds : String = ""
 					cmds = cmds + "exit" + ", "
+					cmds = cmds + "setLag" + ", "
 					cmds = cmds + "setPort" + ", "
 					cmds = cmds + "restart" + ", "
 					cmds = cmds + "toggleGame" + ", "
