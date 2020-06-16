@@ -27,7 +27,7 @@ Include "GameObjects.bmx"
 tb.Init()
 Global DEFAULTPORT:Int = 25567
 Global SFTCP_VERSION:Int = 0001
-Global GAME_TICK_TIME:Int = 1000 * 2 '* 30 * 2 '' TODO make this configurable by the server
+Global GAME_TICK_TIME:Int = 1000 * 2 '* 30 * 2 '' TODO #16 make this configurable by the server
 
 Type Packet
 	Const ID_PING:Int = 1
