@@ -34,27 +34,19 @@ Graphics 480, 240
 '?
 server = New TServer.Create(TSocket.CreateTCP(), DEFAULTPORT)
 If Not server.Start()
-	Print(CurrentDate() + " " + CurrentTime() + " [INFO] Failed to start server")
+	Print(CurrentDate() + " " + CurrentTime() + " [START] Failed to start server")
 	server = Null
 Else
-	TPrint "[INFO] Server Started on " + DEFAULTPORT
+	TPrint "[START] Server Started on " + DEFAULTPORT
 End If
-
-? Not Threaded
 
 curGame.gID = settingsIni.GetInteger("game_id")
 If Not curGame.LoadFromFile()
-	curGame.CreateStarfield(0, 0, 200, 100, 2)
-'	curGame.CreateStarfield(0, 0, 50, 50)
-	
-	For Local num:Int = 0 To 10
-		curGame.CreateStarfield(Rand(-100, 100), Rand(-100, 100), Rand(20, 30), Rnd(15, 35), 2)
-	Next
-		
-	curGame.SaveToFile()
-	TPrint "[INFO] Created new map"
+	TPrint "[START] Map does not exist for game ID: " + curGame.gID
+	TPrint "[START] Please use the createstarfield amd/or randomstarfield commands to create the map before users connect."
+Else
+	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
-?
 
 Global playGame = False ''GH#6 How is this different than server.gamePaused???
 server.gamePaused = true
@@ -252,6 +244,7 @@ Function InputThread:Object(data:Object)
 				Else
 					Local cmds : String = ""
 					cmds = cmds + "exit" + ", "
+					cmds = cmds + "setLag" + ", "
 					cmds = cmds + "setPort" + ", "
 					cmds = cmds + "restart" + ", "
 					cmds = cmds + "toggleGame" + ", "
