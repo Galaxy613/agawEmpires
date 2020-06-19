@@ -6,6 +6,8 @@ Rem
 
 '---------------------------------------------------------------------------------------------------
 End Rem
+const _debug = False
+
 
 Type INI_File
 	
@@ -174,12 +176,12 @@ Type INI_File
 	Method Save(Filename:String)
 		Local SaveFile:TStream = OpenFile(Filename, 0, 1)
 		
-		For Group:String = EachIn Groups
+		For Local Group:String = EachIn Groups
 			If Group <> "" Then
 				WriteLine SaveFile, "";WriteLine SaveFile, "[" + Group + "]"
 			EndIf
 			
-			For Item:INI_Item = EachIn Items
+			For Local Item:INI_Item = EachIn Items
 				If Item.Group = Group Then
 					WriteLine SaveFile, Item.Name + " = " + Item.Data
 				End If
@@ -199,7 +201,7 @@ Type INI_File
 		If filename =< 0 Then RuntimeError "ERROR :: INI_File.Load :: Was not given a proper filename!!"
 		Local file:TStream = OpenFile(filename, 1, 0)
 		If Not file Then RuntimeError "ERROR :: INI_File.Load :: Can not open '" + filename + "'!"
-		If FileSize(filename) =< 0 Then RuntimeError "ERROR :: INI_File.Load :: File does not exist '"+SceneFilename+"'!"
+		If FileSize(filename) =< 0 Then RuntimeError "ERROR :: INI_File.Load :: File does not exist '"+filename+"'!"
 		
 		Local iFile:INI_File = New INI_File.Setup(file)
 		iFile.Filename = StripDir(filename)

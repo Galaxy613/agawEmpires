@@ -20,7 +20,7 @@ Import brl.SocketStream
 Import brl.Retro
 Import brl.EventQueue
 Import brl.PNGLoader
-Import "toolbox.bmx"
+Import "Toolbox.bmx"
 Include "networkHelpers.bmx"
 Include "GameObjects.bmx"
 

@@ -4,6 +4,7 @@ End Rem
 
 'Import "Globals.bmx"
 'Import "LuaConsole.bmx"
+const _debug = False
 '''
 Global scnx = 1280
 Global scny = 720
@@ -562,11 +563,16 @@ Method ClickableImage(IMG:TImage, x, y, Frame = 0, centered = False)
 	Return 0
 End Method
 
-Method Circle(x, y, dia#, points = 16) 
+Method Circle(x, y, dia#, points% = 16) 
 	Local pAngle# = 360.0 / points, i%
+	Local x1#, y1#, x2#, y2#
 	
 	For i = 1 To points
-		DrawLine x+(Cos((i-1)*pAngle#)*dia#),y+(Sin((i-1)*pAngle#)*dia#),x+(Cos(i*pAngle#)*dia#),y+(Sin(i*pAngle#)*dia#)
+		x1 = x + (Cos((i-1)*pAngle)*dia)
+		y1 = y + (Sin((i-1)*pAngle)*dia)
+		x2 = x + (Cos(i*pAngle)*dia)
+		y2 = y + (Sin(i*pAngle)*dia)
+		DrawLine x1,y1,x2,y2
 	Next
 End Method
 
@@ -577,10 +583,14 @@ End Method
 Method DottedCircle(x, y, dia:Float, points = 16, percent:Float = 0.5)
 	Local pAngle# = 360.0 / points, i%
 	Local tAngle:Float = pAngle * percent
+	Local x1#, y1#, x2#, y2#
 	
 	For i = 1 To points
-		DrawLine x + (Cos((I - 1) * pAngle) * dia), y + (Sin((I - 1) * pAngle) * dia),  ..
-					x + (Cos((I * pAngle) - tAngle) * dia), y + (Sin((I * pAngle) - tAngle) * dia)
+		x1 = x + (Cos((i-1)*pAngle)*dia)
+		y1 = y + (Sin((i-1)*pAngle)*dia)
+		x2 = x + (Cos((i*pAngle) - tAngle)*dia)
+		y2 = y + (Sin((i*pAngle) - tAngle)*dia)
+		DrawLine x1,y1,x2,y2
 	Next
 End Method
 
@@ -619,12 +629,14 @@ Method Cross(x, y, Rotate:Int = 1, extra:Float = 0.0)
 	SetRotation 0
 End Method
 
+Rem
 Method SystemMapCross(xx#,yy#,sSize#)
 	DrawLine 	scnx/2 + ( (xx)*sysMapScale ),		scny/2 + ( (yy-sSize)*sysMapScale ),		..
 				scnx/2 + ( (xx)*sysMapScale ),		scny/2 + ( (yy+sSize)*sysMapScale )
 	DrawLine 	scnx/2 + ( (xx-sSize)*sysMapScale ),	scny/2 + ( (yy)*sysMapScale ),		..
 				scnx/2 + ( (xx+sSize)*sysMapScale ),	scny/2 + ( (yy)*sysMapScale )	
-End Method 
+End Method
+EndRem
 
 Method LineRect(x,y,wid,hig,Cross=0,highlight=0)
 	If TK_AllowAlphaChange Then If highlight Then SetAlpha 0.9
