@@ -4,7 +4,7 @@ End Rem
 
 'Import "Globals.bmx"
 'Import "LuaConsole.bmx"
-const _debug = False
+
 '''
 Global scnx = 1280
 Global scny = 720
@@ -665,16 +665,21 @@ Method LineRectNoOverlap(x,y,wid,hig)
 	DrawLine x, 		y+hig, 	x+wid-1, 	y+hig
 End Method
 
+Rem
 Method RotatedLineSq(x,y,wid,angle#=0)
 	SetAlpha 1
 '	Local xc = Cos(angle)*wid
 '	Local yc = Sin(angle)*wid
 	
-	DrawLine x+Cos(angle-45)*wid,	y+Sin(angle-45)*wid,	x+Cos(angle+45)*wid,	y+Sin(angle+45)*wid
+	DrawLine 	Float(x+Cos(angle-45)*wid),	..
+				Float(y+Sin(angle-45)*wid),	..
+				Float(x+Cos(angle+45)*wid),	..
+				Float(y+Sin(angle+45)*wid)
 	DrawLine x+Cos(angle+45)*wid,	y+Sin(angle+45)*wid,	x+Cos(angle+135)*wid,	y+Sin(angle+135)*wid
 	DrawLine x+Cos(angle+135)*wid,y+Sin(angle+135)*wid,	x+Cos(angle-135)*wid,	y+Sin(angle-135)*wid	
 	DrawLine x+Cos(angle-135)*wid,y+Sin(angle-135)*wid,	x+Cos(angle-45)*wid,	y+Sin(angle-45)*wid	
 End Method
+EndRem
 
 Method TextOutline(t:String, x:Float, y:Float, centered = False, orgb:String = "0,0,0", rgb:String = "255,255,255", weight:Float = 1.0)
 	'If TK_AllowColorChange Then SetColor 0, 0, 0
@@ -1029,9 +1034,9 @@ Type Vector2D {expose}
 	''''''''''''''''''''''''''''''''''''''''
 	'#Region Methods
 	
-	Method debug_toString:String(limit = -1)
+	Method debug_toString:String(limit% = -1)
 		If limit > - 1 Then
-			Return "( " + tb.Math.LimitDecimal(x, limit) + " , " + tb.Math.LimitDecimal(y, limit) + " )"
+			Return "( " + tb.Math.LimitDecimal(Float(x), limit) + " , " + tb.Math.LimitDecimal(Float(y), limit) + " )"
 		Else
 			Return "( " + x + " , " + y + " )"
 		EndIf
@@ -1042,11 +1047,11 @@ Type Vector2D {expose}
 	End Method
 	
 	Method GetAngle:Double(vec:Vector2D) 
-		Return tb.Math.GetAngle(x, y, vec.x, vec.y) 
+		Return tb.Math.GetAngle(Float(x), Float(y), Float(vec.x), Float(vec.y)) 
 	End Method
 	
 	Method Angle:Double() 
-		Return tb.Math.GetAngle(0, 0, x, y) 
+		Return tb.Math.GetAngle(0, 0, Float(x), Float(y)) 
 	End Method
 	
 	Method Magitude:Double() 
@@ -1087,16 +1092,17 @@ Type Vector2D {expose}
 	
 	Method slideTo(vec:Vector2D, theshold:Double = 1.0)
 		Local tmp:Vector2D = New Vector2D.Sub(Self, vec)
-		If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
+		'If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
 		tmp.Normalize
-		If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
+		'If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
 		
 		x:+tmp.x * -theshold
 		y:+tmp.y * -theshold
 	End Method
 	
 	Method FuzzyEquals(vec:Vector2D, thershold:Double = 0.5)
-		If tb.PointIn.CheckFuzz(x, vec.x, thershold) And tb.PointIn.CheckFuzz(y, vec.y, thershold)
+		If tb.PointIn.CheckFuzz(Float(x), Float(vec.x), Float(thershold)) And ..
+			tb.PointIn.CheckFuzz(Float(y), Float(vec.y), Float(thershold))
 			Return True
 		EndIf
 		Return False

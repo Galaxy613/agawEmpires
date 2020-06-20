@@ -25,6 +25,7 @@ Include "networkHelpers.bmx"
 Include "GameObjects.bmx"
 
 tb.Init()
+const _debug = False
 Global DEFAULTPORT:Int = 25567
 Global SFTCP_VERSION:Int = 0001
 Global GAME_TICK_TIME:Int = 1000 * 2 '* 30 * 2 '' TODO #16 make this configurable by the server

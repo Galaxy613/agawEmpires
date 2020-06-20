@@ -1,3 +1,4 @@
+Strict
 'Framework brl.blitz
 Import brl.standardio
 Import brl.stream
