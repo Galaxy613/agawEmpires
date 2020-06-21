@@ -134,7 +134,7 @@ Type INI_File
 		Local TempStr1:String, TempStr2:String
 		ListAddLast Groups, String("")
 		
-		If _debug Then Print "INI_FILE: Setup Start"
+		'If _debug Then Print "INI_FILE: Setup Start"
 		
 		While Not Eof(File)
 			CurrentLine = ReadLine(file)						'Read Next Item
@@ -167,19 +167,19 @@ Type INI_File
 			'If Replace(CurrentLine," ","") = "" Then CurrenGroup = ""	' Should clear the current
 			'					group when a space is encountered, I don't know if I want this yet.	
 		Wend
-		If _debug Then Print "INI_FILE: Setup End"
+		'If _debug Then Print "INI_FILE: Setup End"
 		Return Self
 	End Method
 	
 	Method Save(Filename:String)
 		Local SaveFile:TStream = OpenFile(Filename, 0, 1)
 		
-		For Group:String = EachIn Groups
+		For Local Group:String = EachIn Groups
 			If Group <> "" Then
 				WriteLine SaveFile, "";WriteLine SaveFile, "[" + Group + "]"
 			EndIf
 			
-			For Item:INI_Item = EachIn Items
+			For Local Item:INI_Item = EachIn Items
 				If Item.Group = Group Then
 					WriteLine SaveFile, Item.Name + " = " + Item.Data
 				End If
@@ -195,11 +195,11 @@ Type INI_File
 	'--------------------------------------------------------
 	'#Region Functions
 	Function Load:INI_File(filename:String)
-		If _debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
+		'If _debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
 		If filename =< 0 Then RuntimeError "ERROR :: INI_File.Load :: Was not given a proper filename!!"
 		Local file:TStream = OpenFile(filename, 1, 0)
 		If Not file Then RuntimeError "ERROR :: INI_File.Load :: Can not open '" + filename + "'!"
-		If FileSize(filename) =< 0 Then RuntimeError "ERROR :: INI_File.Load :: File does not exist '"+SceneFilename+"'!"
+		If FileSize(filename) =< 0 Then RuntimeError "ERROR :: INI_File.Load :: File does not exist '"+filename+"'!"
 		
 		Local iFile:INI_File = New INI_File.Setup(file)
 		iFile.Filename = StripDir(filename)

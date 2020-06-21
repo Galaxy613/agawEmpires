@@ -12,7 +12,8 @@ Rem
 
 endrem
 
-Strict
+SuperStrict
+
 Import brl.LinkedList
 Import brl.System
 Import brl.Socket
@@ -20,7 +21,7 @@ Import brl.SocketStream
 Import brl.Retro
 Import brl.EventQueue
 Import brl.PNGLoader
-Import "toolbox.bmx"
+Import "Toolbox.bmx"
 Include "networkHelpers.bmx"
 Include "GameObjects.bmx"
 
@@ -96,12 +97,12 @@ Type TBaseClient Extends TStream Abstract
 	Field recievedMessages:TList = CreateList(), ply:TPlayer = Null
 	
 	Field name:String, pass:String, auth:Int = False, stat:Int
-	Field IsSyncingTGame = False
+	Field IsSyncingTGame:Int = False
 	
 	Method Init(Socket:TSocket)
 		m_socket = Socket
 		If m_socket
-			m_sip = m_socket.RemoteIp()
+			m_sip = DottedIPToInt( m_socket.RemoteIp() )
 		End If
 		name = "cadet" + (GetIPAddressAsInt() Mod 999)
 	End Method
@@ -114,7 +115,7 @@ Type TBaseClient Extends TStream Abstract
 		Return m_socket.Send(Buf, Count)
 	End Method
 	
-	Method SendPacket(pid:Int, data:String)
+	Method SendPacket:Int(pid:Int, data:String)
 		If Eof() Then Return False
 		? Threaded
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
@@ -180,7 +181,7 @@ Type TBaseClient Extends TStream Abstract
 	
 	Method Connect:Int(RemoteIp:Int, RemotePort:Int)
 		m_sip = RemoteIp
-		Return m_socket.Connect(RemoteIp, RemotePort)
+		Return m_socket.Connect(AddrInfo( host:String, service:String, hints:TAddrInfo ))
 	End Method
 	
 	Method Connected:Int()
@@ -270,7 +271,7 @@ Type TServer
 		Return False
 	End Method
 	
-	Method SendBroadcast(aText:String, fromServer = True)
+	Method SendBroadcast(aText:String, fromServer:Int = True)
 		TPrint "[Broadcast] " + aText
 		aText = curGame.GetYear() + " " + aText
 		For Local mClient:TServerClient = EachIn m_clients
@@ -466,7 +467,7 @@ End Type
 Type TServerClient Extends TBaseClient
 	
 	Field m_link:TLink
-	Field messagesRecivedRecently:Int = 0, lastSpamCheck = MilliSecs(), lastObjSync:Int = MilliSecs()
+	Field messagesRecivedRecently:Int = 0, lastSpamCheck:Int = MilliSecs(), lastObjSync:Int = MilliSecs()
 	Field acc:Account = Null
 	Field hiccupChecks:Int[10]
 	

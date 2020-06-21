@@ -246,6 +246,11 @@ Method CheckFuzz(x:Float, y:Float, z:Float) ' (x > y - z) And (x < y + z)
 	If x > y - z And x < y + z Then Return True
 	Return False
 End Method
+Method CheckFuzz(x:Double, y:Double, z:Double) ' (x > y - z) And (x < y + z)
+	' Check fuzzly, instead of a streight (x = y) this allows for some flexiblity.
+	If x > y - z And x < y + z Then Return True
+	Return False
+End Method
 End Type
 '#End Region
 '''''''''''''''''''''''''''
@@ -564,9 +569,14 @@ End Method
 
 Method Circle(x, y, dia#, points = 16) 
 	Local pAngle# = 360.0 / points, i%
+	Local x1:Float, x2:Float, y1:Float, y2:Float
 	
 	For i = 1 To points
-		DrawLine x+(Cos((i-1)*pAngle#)*dia#),y+(Sin((i-1)*pAngle#)*dia#),x+(Cos(i*pAngle#)*dia#),y+(Sin(i*pAngle#)*dia#)
+		x1 = x + (Cos((i-1)*pAngle#)*dia#)
+		y1 = y + (Sin((i-1)*pAngle#)*dia#)
+		x2 = x + (Cos(i*pAngle#)*dia#)
+		y2 = y + (Sin(i*pAngle#)*dia#)
+		DrawLine x1, y1, x2, y2
 	Next
 End Method
 
@@ -577,10 +587,14 @@ End Method
 Method DottedCircle(x, y, dia:Float, points = 16, percent:Float = 0.5)
 	Local pAngle# = 360.0 / points, i%
 	Local tAngle:Float = pAngle * percent
+	Local x1:Float, x2:Float, y1:Float, y2:Float
 	
 	For i = 1 To points
-		DrawLine x + (Cos((I - 1) * pAngle) * dia), y + (Sin((I - 1) * pAngle) * dia),  ..
-					x + (Cos((I * pAngle) - tAngle) * dia), y + (Sin((I * pAngle) - tAngle) * dia)
+		x1 = x + (Cos((i - 1) * pAngle) * dia)
+		y1 = y + (Sin((i - 1) * pAngle) * dia)
+		x2 = x + (Cos((i * pAngle) - tAngle) * dia)
+		y2 = y + (Sin((i * pAngle) - tAngle) * dia)
+		DrawLine x1, y1, x2, y2
 	Next
 End Method
 
@@ -619,12 +633,14 @@ Method Cross(x, y, Rotate:Int = 1, extra:Float = 0.0)
 	SetRotation 0
 End Method
 
+Rem
 Method SystemMapCross(xx#,yy#,sSize#)
 	DrawLine 	scnx/2 + ( (xx)*sysMapScale ),		scny/2 + ( (yy-sSize)*sysMapScale ),		..
 				scnx/2 + ( (xx)*sysMapScale ),		scny/2 + ( (yy+sSize)*sysMapScale )
 	DrawLine 	scnx/2 + ( (xx-sSize)*sysMapScale ),	scny/2 + ( (yy)*sysMapScale ),		..
 				scnx/2 + ( (xx+sSize)*sysMapScale ),	scny/2 + ( (yy)*sysMapScale )	
 End Method 
+EndRem
 
 Method LineRect(x,y,wid,hig,Cross=0,highlight=0)
 	If TK_AllowAlphaChange Then If highlight Then SetAlpha 0.9
@@ -653,16 +669,30 @@ Method LineRectNoOverlap(x,y,wid,hig)
 	DrawLine x, 		y+hig, 	x+wid-1, 	y+hig
 End Method
 
+Rem
 Method RotatedLineSq(x,y,wid,angle#=0)
 	SetAlpha 1
 '	Local xc = Cos(angle)*wid
 '	Local yc = Sin(angle)*wid
 	
-	DrawLine x+Cos(angle-45)*wid,	y+Sin(angle-45)*wid,	x+Cos(angle+45)*wid,	y+Sin(angle+45)*wid
-	DrawLine x+Cos(angle+45)*wid,	y+Sin(angle+45)*wid,	x+Cos(angle+135)*wid,	y+Sin(angle+135)*wid
-	DrawLine x+Cos(angle+135)*wid,y+Sin(angle+135)*wid,	x+Cos(angle-135)*wid,	y+Sin(angle-135)*wid	
-	DrawLine x+Cos(angle-135)*wid,y+Sin(angle-135)*wid,	x+Cos(angle-45)*wid,	y+Sin(angle-45)*wid	
+	DrawLine x+Cos(angle-45)*wid, ..
+			 y+Sin(angle-45)*wid, ..
+			 x+Cos(angle+45)*wid, ..
+			 y+Sin(angle+45)*wid
+	DrawLine x+Cos(angle+45)*wid, ..
+			 y+Sin(angle+45)*wid, ..
+			 x+Cos(angle+135)*wid, ..
+			 y+Sin(angle+135)*wid
+	DrawLine x+Cos(angle+135)*wid, ..
+			 y+Sin(angle+135)*wid, ..
+			 x+Cos(angle-135)*wid,
+			 y+Sin(angle-135)*wid	
+	DrawLine x+Cos(angle-135)*wid, ..
+			 y+Sin(angle-135)*wid, ..
+			 x+Cos(angle-45)*wid, ..
+			 y+Sin(angle-45)*wid	
 End Method
+EndRem
 
 Method TextOutline(t:String, x:Float, y:Float, centered = False, orgb:String = "0,0,0", rgb:String = "255,255,255", weight:Float = 1.0)
 	'If TK_AllowColorChange Then SetColor 0, 0, 0
@@ -903,7 +933,11 @@ Method GetDistance#(x1#,y1#,x2#,y2#)
 End Method
 
 Method GetAngle#(x1#,y1#,x2#,y2#)
-	Return ATan2((y2# - y1#), (x2# - x1#))
+	Return ATan2((y2 - y1), (x2 - x1))
+End Method
+
+Method GetAngleD(x1:Double,y1:Double,x2:Double,y2:Double)
+	Return ATan2((y2 - y1), (x2 - x1))
 End Method
 
 Method GetAngleVector#(currentAngle#,targetAngle#)
@@ -974,8 +1008,11 @@ Method GetAngleVectorP#(currentAngle#,targetAngle#)
 	EndIf
 End Method
 
-Method LimitDecimal$(tmpfloat#,positions = 1) 
-	Return Left(String(tmpFloat#), Instr(tmpFloat#,".")+positions)
+Method LimitDecimal$(tmpfloat#, positions = 1) 
+	Return Left(String(tmpFloat), Instr(tmpFloat,".")+positions)
+End Method
+Method LimitDecimalD$(tmpfloat:Double, positions:Int = 1) 
+	Return Left(String(tmpFloat), Instr(tmpFloat,".")+positions)
 End Method
 
 Method LimitDenom:String(amount:Float, cred:String = "m", thou:String = "b", mill:String = "t")'cred:String = "c", thou:String = "k", mill:String = "m")
@@ -1019,7 +1056,7 @@ Type Vector2D {expose}
 	
 	Method debug_toString:String(limit = -1)
 		If limit > - 1 Then
-			Return "( " + tb.Math.LimitDecimal(x, limit) + " , " + tb.Math.LimitDecimal(y, limit) + " )"
+			Return "( " + tb.Math.LimitDecimalD(x, limit) + " , " + tb.Math.LimitDecimalD(y, limit) + " )"
 		Else
 			Return "( " + x + " , " + y + " )"
 		EndIf
@@ -1030,11 +1067,11 @@ Type Vector2D {expose}
 	End Method
 	
 	Method GetAngle:Double(vec:Vector2D) 
-		Return tb.Math.GetAngle(x, y, vec.x, vec.y) 
+		Return tb.Math.GetAngleD(x, y, vec.x, vec.y) 
 	End Method
 	
 	Method Angle:Double() 
-		Return tb.Math.GetAngle(0, 0, x, y) 
+		Return tb.Math.GetAngleD(0, 0, x, y) 
 	End Method
 	
 	Method Magitude:Double() 
@@ -1075,9 +1112,9 @@ Type Vector2D {expose}
 	
 	Method slideTo(vec:Vector2D, theshold:Double = 1.0)
 		Local tmp:Vector2D = New Vector2D.Sub(Self, vec)
-		If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
+		'If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
 		tmp.Normalize
-		If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
+		'If _debug = 2 Then PrintConsole tmp.x + " | " + tmp.y + " || " + tmp.Length
 		
 		x:+tmp.x * -theshold
 		y:+tmp.y * -theshold

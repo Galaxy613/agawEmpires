@@ -290,7 +290,7 @@ Type Account
 				acc.stat = Handle.ReadInt() ''' ColorString?
 				Local Count:Int = Handle.ReadInt() ''' NumOfVars
 				If Count > 0 Then
-					For Local ii = 0 To Count
+					For Local ii% = 0 To Count
 						Local tmpStr:String = Handle.ReadLine()
 						acc.data.Insert(tmpStr.Split("`")[0], tmpStr.Split("`")[1])
 					Next
@@ -331,7 +331,7 @@ Type Account
 End Type
 
 '''
-Function CountMap(map:TMap)
+Function CountMap:Int(map:TMap)
 	Local Count:Int = 0, obj:Object
 	For obj = EachIn map
 		Count:+1
@@ -340,7 +340,7 @@ Function CountMap(map:TMap)
 End Function
 Function Combine:String(Text:String[], delimiter:String = "`")
 	Local result:String
-	For Local I = 0 Until Text.Length
+	For Local I% = 0 Until Text.Length
 		If I > 0 Then result:+delimiter
 		result:+Text[I]
 	Next

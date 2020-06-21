@@ -240,7 +240,8 @@ Type TGame
 	End Method
 	
 	Method FindJoinableSystem:TSystem(minDist:Float = 22, maxtimeout:Int = 150)
-		Local sys:TSystem = Null, curTimeout, systemsNearby:Int = 0, nearbyDist:Float = minDist / 2, adjcentDist:Float = minDist / 3
+		Local sys:TSystem = Null
+		Local curTimeout:Int, systemsNearby:Int = 0, nearbyDist:Float = minDist / 2, adjcentDist:Float = minDist / 3
 		While sys = Null
 			sys = FindSystemID(Rand(0, systems.Count()))
 			If sys = Null Then Continue
@@ -341,7 +342,7 @@ Type TGame
 	
 	'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 	''' New crap
-	Method PlayerJoin(playerName:String, preferedTopic:Int = -1)
+	Method PlayerJoin:Int(playerName:String, preferedTopic:Int = -1)
 		TPrint "[INFO] Seeing if " + playerName + " is already joined..."
 		If FindPlayerObj(playerName) Then TPrint "[Game] Player has already joined!" ; Return 0
 		TPrint "[INFO] Player is new, finding a system..."
@@ -388,7 +389,7 @@ Type TGame
 		Return 1
 	End Method
 	
-	Method CreateStarfield(xx, yy, numOfStars:Int, maxDist:Float, minDist:Float = 5)
+	Method CreateStarfield(xx%, yy%, numOfStars:Int, maxDist:Float, minDist:Float = 5)
 		Local tmpAngle:Float
 		Local tmpDist:Float
 		Local tmp:TSystem
@@ -448,7 +449,7 @@ Type TGame
 		End Select
 	End Method
 	
-	Method CreateSpiralArm(startangle:Float = 0, numSystems = 5, curve:Float = 13.0, spread:Float = 3, startDistance:Float = 4, xx:Int = 0, yy:Int = 0)
+	Method CreateSpiralArm(startangle:Float = 0, numSystems:Int = 5, curve:Float = 13.0, spread:Float = 3, startDistance:Float = 4, xx:Int = 0, yy:Int = 0)
 		For Local xAngle:Int = 0 To numSystems
 			Local angle:Float = startangle
 			angle:+xAngle * curve
@@ -456,8 +457,7 @@ Type TGame
 			Local tmp:TSystem = TSystem.Create("-1`" + (xx + Int(Cos(angle) * dist)) + "`" + (yy + Int(Sin(angle) * dist)))
 			If tmp Then
 				tmp.ships = Rand(-1, 7) * 3
-				tmp.quality = Rand(1, 99)
-				tmp.quality = Int(((tmp.quality * tmp.quality) / 1100.0) + 1)
+				tmp.quality = Rand(0, 9)
 			EndIf
 		Next
 	End Method
@@ -504,7 +504,7 @@ Type TGame
 		Handle.Close()
 	End Method
 	
-	Method LoadFromFile(filename:String = "game*.txt")
+	Method LoadFromFile:Int(filename:String = "game*.txt")
 		filename = filename.Replace("*", gID)
 		TPrint "[INFO] Loading galaxy from: " + filename
 		If FileSize(filename) = -1 Then Return False
@@ -513,7 +513,8 @@ Type TGame
 		If Handle <> Null
 			CurrentTurn = Int(Handle.ReadLine())
 			Local Count:Int = Int(Handle.ReadLine())
-			For Local ii = 0 Until Count
+			Local ii%
+			For ii = 0 Until Count
 				If Handle.Eof() Then Print "[ERROR] Unexpected EOF Loading " + filename + "! In Players" ; Return False
 				UnPackPlayer(Handle.ReadLine().Split("`"))
 			Next
@@ -521,7 +522,7 @@ Type TGame
 			
 			If Handle.Eof() Then Print "[ERROR] Unexpected EOF Loading " + filename + "! Before Systems" ; Return False
 			Count = Int(Handle.ReadLine())
-			For Local ii = 0 Until Count
+			For ii = 0 Until Count
 				If Handle.Eof() Then Print "[ERROR] Unexpected EOF Loading " + filename + "! In Systems" ; Return False
 				UnPackSystem(Handle.ReadLine().Split("`"))
 			Next
@@ -529,7 +530,7 @@ Type TGame
 			
 			If Handle.Eof() Then Print "[ERROR] Unexpected EOF Loading " + filename + "! Before Fleets" ; Return False
 			Count = Int(Handle.ReadLine())
-			For Local ii = 0 Until Count
+			For ii = 0 Until Count
 				If Handle.Eof() Then Print "[ERROR] Unexpected EOF Loading " + filename + "! In Fleets" ; Return False
 				UnPackFleet(Handle.ReadLine().Split("`"))
 			Next
@@ -541,16 +542,17 @@ Type TGame
 End Type
 
 Type TNetObject Abstract
-	Const ID_SYSTEM = 1
-	Const ID_PLAYER = 2
-	Const ID_FLEET = 3
+	Const ID_SYSTEM:Int = 1
+	Const ID_PLAYER:Int = 2
+	Const ID_FLEET:Int = 3
+	
 	Field netID:Int = -1
 	Field netTypeID:Int = -1
 	
 	Global RecentlyUpdated:TList = CreateList()
 	
 	Method Packetize:String(requestType:Int) Abstract
-	Method UnPack(packet:String[]) Abstract
+	Method UnPack:Int(packet:String[]) Abstract
 	
 	Function WriteTo(list:TList, Handle:TStream)
 		'Handle.WriteInt(list.Count())
@@ -585,7 +587,7 @@ Type TPlayer Extends TNetObject
 	Field newCreditsThisTurn:Float = 0.0, syncNeow:Int = False
 	Field credits:Int = 250, researchTopics:Float[8] 'shipBuilding:Float = 1.0, Research:Float = 1.0
 	'	Field fuelRange:Float = 8.5, radarRange:Float = 12.5, fleetSpeed:Float = 1.5, planetaryDefense:Float = 1.0, fleetWeapons:Float = 1.0
-	Field preferedResearchAspect:Int = 0, researchAspect = -1, untilNextDecimal:Int, currentResearchTurn:Int, nextResearchTopic:Int = -1
+	Field preferedResearchAspect:Int = 0, researchAspect:Int = -1, untilNextDecimal:Int, currentResearchTurn:Int, nextResearchTopic:Int = -1
 	
 	Function Create:TPlayer(name:String, initPacket:String = "")
 		Local tmp:TPlayer = New TPlayer
@@ -650,7 +652,7 @@ Type TPlayer Extends TNetObject
 		End If
 	End Method
 	
-	Method PayForResearch(resTopic:Int)
+	Method PayForResearch:Int(resTopic:Int)
 		If credits < 0 Then Return (-1) ' Can't when you have no positive credits
 		If researchAspect < 0 Then Return (-2)
 		
@@ -669,7 +671,7 @@ Type TPlayer Extends TNetObject
 		Return 0
 	End Method
 	
-	Method GetResearchCost(resTopic:Int)
+	Method GetResearchCost:Int(resTopic:Int)
 		Local researchCost:Int = -1
 		If resTopic = researchAspect Then
 			researchCost = (untilNextDecimal - currentResearchTurn) * 625
@@ -692,7 +694,7 @@ Type TPlayer Extends TNetObject
 		If setResTopic Then
 			If Not IsResearchTopicAvailable(researchAspect) Then nextResearchTopic = -1
 			If nextResearchTopic = -1 Then ''' Goto the next research topic
-				Local tmpResTopic = researchAspect + 1, timesTried = 0
+				Local tmpResTopic:Int = researchAspect + 1, timesTried:Int = 0
 				While Not IsResearchTopicAvailable(tmpResTopic)
 					tmpResTopic:+1
 					If tmpResTopic > researchTopics.Length - 2 Then tmpResTopic = 0
@@ -705,7 +707,7 @@ Type TPlayer Extends TNetObject
 				researchAspect = tmpResTopic
 			End If
 			If nextResearchTopic < - 1 Then
-				Local tmpResTopic = -1, timesTried = 0
+				Local tmpResTopic:Int = -1, timesTried:Int = 0
 				researchAspect = -1
 				While timesTried < 10
 					tmpResTopic = Rand(0, researchTopics.Length - 2)
@@ -719,7 +721,7 @@ Type TPlayer Extends TNetObject
 		NeedsToSync()
 	End Method
 	
-	Method IsResearchTopicAvailable(curResearchAspect:Int)
+	Method IsResearchTopicAvailable:Int(curResearchAspect:Int)
 		Select curResearchAspect
 			Case RES_RESEARCH
 				If researchTopics[curResearchAspect] >= 10.0 Then Return False
@@ -757,7 +759,7 @@ Type TPlayer Extends TNetObject
 		
 		If researchAspect < 0 Then
 			untilNextDecimal = 1
-			Return 0
+			Return
 		EndIf
 		untilNextDecimal = GetResearchLength(researchAspect)
 		
@@ -814,7 +816,7 @@ Type TPlayer Extends TNetObject
 		End Select
 	End Method
 	
-	Method UnPack(packet:String[])
+	Method UnPack:Int(packet:String[])
 		Local ix:Int = 0
 		
 		If Packet[ix] <> "" Then netID = Int(Packet[ix])
@@ -856,7 +858,7 @@ Type TPlayer Extends TNetObject
 		'	If packet[ix] <> "" Then UnPackMessages(packet[ix].Split(","))
 		'	ix:+1 ; If packet.Length = ix Then Return ix
 		
-		Return - 1
+		Return -1
 	End Method
 	
 	Method PacketizeMessages:String()
@@ -868,7 +870,7 @@ Type TPlayer Extends TNetObject
 		Return result
 	End Method
 	
-	Method UnPackMessages(packet:String[])
+	Method UnPackMessages:Int(packet:String[])
 		Local numMessage:Int = packet.Length, ii:Int = 0
 		messages.Clear()
 		For ii = 0 Until numMessage
@@ -901,7 +903,7 @@ Type TSystem Extends TNetObject
 	Field ships:Int = 0
 	Field owner:Int = -1
 	Field quality:Int = -1
-	Field lastBuild = 0, isBuilding = -1
+	Field lastBuild:Int = 0, isBuilding:Int = -1
 	
 	Method New()
 		netTypeID = ID_SYSTEM
@@ -937,7 +939,7 @@ Type TSystem Extends TNetObject
 	'	End Select
 	End Method
 	
-	Method UnPack(packet:String[])
+	Method UnPack:Int(packet:String[])
 		Local ix:Int = 0
 		If Packet[ix] <> "" Then netID = Int(Packet[ix])
 		ix:+1 ; If Packet.Length = ix Then Return ix
@@ -966,7 +968,7 @@ Type TSystem Extends TNetObject
 	End Method
 	
 	Method CalculateNewShipTime:Int()
-		Local ply:TPlayer = curGame.FindPlayerID(owner), minBuild = 30
+		Local ply:TPlayer = curGame.FindPlayerID(owner), minBuild:Int = 30
 		If quality < 1 Then Return - 1
 		
 		minBuild:-quality
@@ -988,7 +990,7 @@ Type TSystem Extends TNetObject
 	
 	Method Update()
 		If ships < 0 Then ships = 0
-		Local ply:TPlayer = curGame.FindPlayerID(owner), minBuild = CalculateNewShipTime()
+		Local ply:TPlayer = curGame.FindPlayerID(owner), minBuild:Int = CalculateNewShipTime()
 		
 		If minBuild < 0 Then Return
 		If Not isBuilding Then Return
@@ -1010,7 +1012,7 @@ Type TSystem Extends TNetObject
 		Return (y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan
 	End Method
 	
-	Method IsMouseOver()
+	Method IsMouseOver:Int()
 		Return tb.PointIn.MouseInRect((x * MAP_SCALE) - (MAP_SCALE) + (scnx / 2) - currentXPan,  ..
 			(y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan,  ..
 			(MAP_SCALE * 2), (MAP_SCALE * 2))
@@ -1121,7 +1123,7 @@ Type TFleet Extends TNetObject
 				Return netID + "`" + x + "`" + y + "`" + angle
 				
 			Case 1 '' Long range sensors
-				Local notStrength = 0
+				Local notStrength:Int = 0
 				If strength > 250 Then notStrength = 250
 				If strength > 1000 Then notStrength = 1000
 				Return netID + "`" + x + "`" + y + "`" + angle + "`" + speed + "`" + owner + "`" + notStrength + "`" + isInCombat
@@ -1129,13 +1131,13 @@ Type TFleet Extends TNetObject
 			Case 2 '' Nearby
 				Return netID + "`" + x + "`" + y + "`" + angle + "`" + speed + "`" + owner + "`" + strength + "`" + isInCombat + "`" + destID
 				
-				Default '' Save/Owner
+			Default '' Save/Owner
 				Return netID + "`" + x + "`" + y + "`" + angle + "`" + speed + "`" + owner + "`" + strength + "`" + isInCombat + "`" + destID + "`" + homeID + "`" + damageOutput + "`" + damageTaken + "`" + originalStrength
 		End Select
 		'damageOutput:Float = 0.0, damageTaken:Float = 0.0
 	End Method
 	
-	Method UnPack(packet:String[])
+	Method UnPack:Int(packet:String[])
 		Local ix:Int = 0
 		Sync = True
 		
@@ -1197,14 +1199,14 @@ Type TFleet Extends TNetObject
 		Return (y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan
 	End Method
 	
-	Method IsMouseOver()
+	Method IsMouseOver:Int()
 		Return tb.PointIn.MouseInRect((x * MAP_SCALE) - (MAP_SCALE) + (scnx / 2) - currentXPan,  ..
 			(y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan,  ..
 			(MAP_SCALE * 2), (MAP_SCALE * 2))
 	End Method
 	
 	Method Draw(drawMouseOver:Int = False)
-		If MAP_SCALE < 5 Then Return False
+		If MAP_SCALE < 5 Then Return
 		'curGame.IsFriendly(owner)
 		SetColor 255, 255, 255
 		Local radarRange:Int = 0
