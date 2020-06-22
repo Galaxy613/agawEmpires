@@ -13,10 +13,10 @@ Global currentLag = 0
 
 Global settingsIni:INI_File = OpenINI("server-settings.ini")
 
-If FileType("server-settings.ini") = 0 Then
+If FileSize("server-settings.ini") =< 0 or FileType("server-settings.ini") = 0 Then
 	Notify( "Creating 'server-settings.ini' and closing, edit it to change defaults." )
-	settingsIni.set("game_id", "100")
-	settingsIni.set("server_port", DEFAULTPORT)
+	settingsIni.set("game_id", "100", "game")
+	settingsIni.set("server_port", DEFAULTPORT, "network")
 	
 	settingsIni.save("server-settings.ini")
 	End
@@ -40,10 +40,10 @@ Else
 	TPrint "[START] Server Started on " + DEFAULTPORT
 End If
 
-curGame.gID = settingsIni.GetInteger("game_id")
+curGame.gID = settingsIni.GetInteger("game_id", "game")
 If Not curGame.LoadFromFile()
 	TPrint "[START] Map does not exist for game ID: " + curGame.gID
-	TPrint "[START] Please use the createstarfield amd/or randomstarfield commands to create the map before users connect."
+	TPrint "[START] Please use the createstarfield and/or randomstarfield commands to create the map before users connect."
 Else
 	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
@@ -277,7 +277,7 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				If command.Length > 1 Then
 					DEFAULTPORT = Int(command[1])
-					settingsIni.set("server_port", DEFAULTPORT)
+					settingsIni.set("server_port", DEFAULTPORT, "network")
 				EndIf
 				networkMutex.Unlock()
 				
@@ -313,7 +313,7 @@ Function InputThread:Object(data:Object)
 					curGame.SaveToFile()
 					curGame = New TGame
 					curGame.gID = Int(command[1])
-					settingsIni.set("game_id", curGame.gID)
+					settingsIni.set("game_id", curGame.gID, "game")
 					curGame.LoadFromFile()
 				Else
 					TPrint "[Game] Unrecongized command argument amount. Expecting 1 arguments"
@@ -324,7 +324,7 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				If command.Length = 2 Then
 					curGame.gID = Int(command[1])
-					settingsIni.set("game_id", curGame.gID)
+					settingsIni.set("game_id", curGame.gID, "game")
 				EndIf
 				curGame.SaveToFile()
 				TPrint "[Saved]"

@@ -20,21 +20,23 @@ Global settingsIni:INI_File = OpenINI("settings.ini")
 If FileType("settings.ini") = 0 Then
 	Notify( "Setting resolution to 1280x720. Modify your settings by opening 'settings.ini'!" )
 	
-	settingsIni.set("screen_width", 1280)
-	settingsIni.set("screen_height", 720)
-	settingsIni.set("server_ip", "127.0.0.1")
-	settingsIni.set("server_port", DEFAULTPORT)
+	settingsIni.set("screen_width", 1280, "graphics")
+	settingsIni.set("screen_height", 720, "graphics")
+	settingsIni.set("server_ip", "127.0.0.1", "network")
+	settingsIni.set("server_port", DEFAULTPORT, "network")
 	
 	settingsIni.save("settings.ini")
 EndIf
 
-scnx = settingsIni.GetInteger( "screen_width" )
-scny = settingsIni.GetInteger( "screen_height" )
-mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip" ))
-mainChat.NewVariable("port", settingsIni.GetString( "server_port" ))
+scnx = settingsIni.GetInteger( "screen_width", "graphics" )
+scny = settingsIni.GetInteger( "screen_height", "graphics" )
+mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip", "network" ))
+mainChat.NewVariable("port", settingsIni.GetString( "server_port", "network" ))
 Local screenMode:int = 0
-If settingsIni.ItemExists("screen_mode") Then
-	screenMode = settingsIni.GetInteger( "screen_mode" )
+If settingsIni.ItemExists("screen_mode", "graphics") Then
+	screenMode = settingsIni.GetInteger( "screen_mode", "graphics" )
+Else
+	settingsIni.set("screen_mode", screenMode, "graphics")
 EndIf
 
 AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
