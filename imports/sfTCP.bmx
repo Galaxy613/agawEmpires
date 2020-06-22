@@ -181,7 +181,7 @@ Type TBaseClient Extends TStream Abstract
 	
 	Method Connect:Int(RemoteIp:Int, RemotePort:Int)
 		m_sip = RemoteIp
-		Return m_socket.Connect(AddrInfo( host:String, service:String, hints:TAddrInfo ))
+		Return m_socket.Connect(AddrInfo( RemoteIp, RemotePort, New TAddrInfo(AF_INET_, SOCK_STREAM_) )[0])
 	End Method
 	
 	Method Connected:Int()
@@ -191,7 +191,7 @@ Type TBaseClient Extends TStream Abstract
 		Return False
 	End Method
 	
-	Method Update()
+	Method Update:Int()
 		Local msgID:Int = -1, msgTextLength:Int, msgText:String = ""
 		'? Not Debug
 		Try
@@ -226,7 +226,7 @@ Type TBaseClient Extends TStream Abstract
 		Return (m_sip Shr 24) + separator + (m_sip Shr 16 & 255) + separator + (m_sip Shr 8 & 255) + separator + (m_sip & 255)
 	End Method
 	
-	Method HandleMessage(id:Int, data:String) Abstract
+	Method HandleMessage:Int(id:Int, data:String) Abstract
 	
 End Type
 
@@ -496,7 +496,7 @@ Type TServerClient Extends TBaseClient
 		End If
 	End Method
 	
-	Method SendPacket(pid:Int, data:String)
+	Method SendPacket:Int(pid:Int, data:String)
 		Local e:Object = Null
 		If Eof() Then Return False
 		? Threaded
@@ -566,7 +566,7 @@ Type TServerClient Extends TBaseClient
 		End If
 	End Method
 	
-	Method DealWithFleetRequest(packetArray:String[])
+	Method DealWithFleetRequest:Int(packetArray:String[])
 		''' fromnetID, tonetID, ships
 		If packetArray.Length <> 3 Then SendText("[Server] Incomplete Fleet Dispatch Request Packet, Try Again", 1) ; Return False
 		Local fromSys:TSystem = curGame.FindSystemID(Int(packetArray[0]))
@@ -582,7 +582,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method StartSyncing()
+	Method StartSyncing:Int()
 		If Not auth Then Return False
 		If IsSyncingTGame = False Then
 			IsSyncingTGame = True
@@ -597,7 +597,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncSystems(tmp:TSystem)
+	Method SyncSystems:Int(tmp:TSystem)
 		'If CurrentTSystem = 0 Then TPrint "[Info] Starting to Sync Systems for " + name
 		curGame.ddebugStr = "Sector 3.1"
 		CurrentTSystem:+1
@@ -624,7 +624,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncFleets(tmp:TFleet)
+	Method SyncFleets:Int(tmp:TFleet)
 		'If CurrentTFleet = 0 Then TPrint "[Info] Starting to Sync Fleets for " + name
 		CurrentTFleet:+1
 		If Not tmp Then Return False
@@ -651,7 +651,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncPlayers(tply:TPlayer)
+	Method SyncPlayers:Int(tply:TPlayer)
 		'if CurrentTPlayer = 0 Then TPrint "[Info] Starting to Sync Players for " + name
 		CurrentTPlayer:+1
 		If Not tply Then Return False
@@ -676,7 +676,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method HandleMessage(id:Int, data:String)
+	Method HandleMessage:Int(id:Int, data:String)
 		Local packetArray:String[] = data.Split("`")
 		'	If id <> Packet.ID_PING And id <> Packet.ID_PONG Then TPrint "[CLIENT] Packet:'" + name + "' ID:" + id + " Data:'" + data + "' Args:" + packetArray.Length
 		messagesRecivedRecently:+1
@@ -987,20 +987,20 @@ Type TMasterClient Extends TBaseClient
 		SendPacket(Packet.ID_UPDATEALL, "plz")
 	End Method
 	
-	Method HandleMessage(id:Int, data:String)
+	Method HandleMessage:Int(id:Int, data:String)
 		Local packetArray:String[] = data.Split("`")
 		If id <> Packet.ID_PING And id <> Packet.ID_PONG Then Print "MClient Packet Recived! ID:" + id + " Data:'" + data + "' Args:" + packetArray.Length
 		Select id
 			Case Packet.ID_LOGIN
 				If Not packetArray.Length > 0 Then
 					TPrint("[WARNING] Packet.ID_LOGIN Packet didn't provide enough data: '" + data + "'")
-					Return
+					Return false
 				EndIf
 				Select Int(packetArray[0])
 					Case 1 ''' WOO! We're in!
 						If Not packetArray.Length > 1 Then
 							TPrint("[WARNING] Packet.ID_LOGIN Packet didn't provide enough data: '" + data + "'")
-							Return
+							Return False
 						EndIf
 						name = packetArray[1]
 						TPrint("[INFO] Logged in as: " + name)

@@ -48,10 +48,8 @@ Else
 	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
 
-Global playGame = False ''GH#6 How is this different than server.gamePaused???
 server.gamePaused = true
 If curGame Then If curGame.players.Count() > 2 Then
-	playGame = True
 	server.gamePaused = false
 End If
 
@@ -86,8 +84,8 @@ While (Not AppTerminate()) And (Not endInputThreadBool)
 		Local printTime:Int = False
 		If serverUpdateTime > 1000 Then TPrint "[WARNING] Unusual amount of time required for update! " + serverUpdateTime ; printTime = True
 		
-		If Not playGame Then SetColor 255,0,0
-		DrawText "Players: " + server.m_clients.Count() + "    PG:" + playGame, 0, 16
+		If server.gamePaused Then SetColor 255,0,0
+		DrawText "Players: " + server.m_clients.Count() + "    Paused:" + server.gamePaused, 0, 16
 		SetColor 255,255,255
 		Local scCount:Int = 0
 		For Local tc:TServerClient = EachIn server.m_clients
@@ -296,31 +294,18 @@ Function InputThread:Object(data:Object)
 				networkMutex.Unlock()
 				
 			Case "togglegame"
-				networkMutex.Lock()
-				If playGame = False Then
-					playGame = True
-					If server Then
-						server.gamePaused = False
-						server.lastUpdate = MilliSecs()
-					EndIf
-				Else
-					playGame = False
-					If server Then
-						server.gamePaused = True
-						server.lastUpdate = MilliSecs()
-					EndIf
-				EndIf
-				
 				If server Then
-					If server.gamePaused Then
+					networkMutex.Lock()
+					If server.gamePaused = False Then
+						server.gamePaused = True
 						TPrint "[INFO] Game Updates Stopped"
-						playGame = False
 					Else
+						server.gamePaused = False
 						TPrint "[INFO] Game Updates Resumed"
-						playGame = True
-					End If
-				End If
-				networkMutex.Unlock()
+					EndIf
+					server.lastUpdate = MilliSecs()
+					networkMutex.Unlock()
+				EndIf
 				
 			Case "loadgame"
 				networkMutex.Lock()
