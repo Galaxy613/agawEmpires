@@ -179,8 +179,8 @@ Type TBaseClient Extends TStream Abstract
 		End If
 	End Method
 	
-	Method Connect:Int(RemoteIp:Int, RemotePort:Int)
-		m_sip = RemoteIp
+	Method Connect:Int(RemoteIp:String, RemotePort:Int)
+		m_sip = DottedIPToInt(RemoteIp)
 		Return m_socket.Connect(AddrInfo( RemoteIp, RemotePort, New TAddrInfo(AF_INET_, SOCK_STREAM_) )[0])
 	End Method
 	
