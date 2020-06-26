@@ -71,7 +71,7 @@ Function SendPacketToStreamThread:Object(data:Object)
 		packetData.stream.WriteInt(packetData.data.Length)
 		packetData.stream.WriteLine(packetData.data)
 	Catch e:Object
-		'TPrint("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+		'TPrint("SendPacketToStreamThread [ERROR] Packet Sending Failure: " + e.ToString() + "")
 		Return e
 	End Try
 	
@@ -104,20 +104,21 @@ Type TBaseClient Extends TStream Abstract
 		If m_socket
 			m_sip = DottedIPToInt( m_socket.RemoteIp() )
 		End If
-		name = "cadet" + (GetIPAddressAsInt() Mod 999)
+		name = "cadet" + (GetIPAddressAsInt() Mod 9999)
 	End Method
 	
-	Method read:Int(Buf:Byte Ptr, Count:Int)
-		Return m_socket.Recv(Buf, Count)
+	Method Read:Long( buf:Byte Ptr, count:Long ) Override
+		Return m_socket.Recv(Buf, Size_T(Count))
 	End Method
 	
-	Method Write:Int(Buf:Byte Ptr, Count:Int)
-		Return m_socket.Send(Buf, Count)
+	Method Write:Long( buf:Byte Ptr, count:Long ) Override
+		Return m_socket.Send(Buf, Size_T(Count))
 	End Method
 	
 	Method SendPacket:Int(pid:Int, data:String)
 		If Eof() Then Return False
-		? Threaded
+? Threaded
+		
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
 		Local startingMS:Int = MilliSecs()
 		While packetThread.Running()
@@ -125,20 +126,20 @@ Type TBaseClient Extends TStream Abstract
 		Wend
 		Local e:Object = packetThread.wait()
 		If e Then
-			TPrint("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("1[ERROR] Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
-		? Not Threaded
-		TPrint "Sending Unthreaded Packet.." + pid + " Data: " + data
+? Not Threaded
+		TPrint "Sending Unthreaded Packet.. " + pid + " Data: " + data
 		Try
 			WriteInt(pid)
 			WriteInt(data.Length)
 			WriteLine(data)
 		Catch e:Object
-			recievedMessages.AddLast("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+			recievedMessages.AddLast("[ERROR] Packet Sending Failure: " + e.ToString() + "`1")
 			Close()
 		End Try
-		?
+?
 		Return True
 	End Method
 	
@@ -181,7 +182,16 @@ Type TBaseClient Extends TStream Abstract
 	
 	Method Connect:Int(RemoteIp:String, RemotePort:Int)
 		m_sip = DottedIPToInt(RemoteIp)
-		Return m_socket.Connect(AddrInfo( RemoteIp, RemotePort, New TAddrInfo(AF_INET_, SOCK_STREAM_) )[0])
+		Local infos:TAddrInfo[] = AddrInfo(RemoteIp, RemotePort, New TAddrInfo(AF_INET_, SOCK_STREAM_))
+		
+		If Not infos Then
+			Print "Hostname could not be resolved."
+			End ' TODO don't commit this
+		End If
+		Local info:TAddrInfo = infos[0]
+		Print "IP address of " + RemoteIp + " is " + info.HostIp()
+		
+		Return m_socket.Connect(info)
 	End Method
 	
 	Method Connected:Int()
@@ -264,7 +274,7 @@ Type TServer
 	Method Start:Int()
 		If m_socket <> Null
 			If m_socket.Bind(m_port) = True
-				m_socket.Listen(0)
+				m_socket.Listen(10)
 				Return True
 			End If
 		End If
@@ -343,7 +353,8 @@ Type TServer
 		
 		'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 		''' Accept new connections
-		curGame.ddebugStr = "Sector c" ; Local Socket:TSocket = m_socket.Accept(0)
+		curGame.ddebugStr = "Sector c"
+		Local Socket:TSocket = m_socket.Accept(5)
 		If Socket
 			AddClient(New TServerClient.Create(Socket))
 		End If
@@ -438,7 +449,7 @@ Type TServer
 	Method AddClient(client:TServerClient)
 		client.SetLink(m_clients.AddLast(client))
 		client.SendPing()
-		TPrint "[INFO] Client Connected from: " + client.GetIPAddressAsString()
+		TPrint "[INFO] "+"Connected from " + client.m_socket.RemoteIp() + ":" + client.m_socket.RemotePort()
 		client.SendText("[MOTD] " + MOTD, 5)
 		If recentBroadcasts.Count() > 0 Then
 			For Local str:String = EachIn recentBroadcasts
@@ -499,28 +510,28 @@ Type TServerClient Extends TBaseClient
 	Method SendPacket:Int(pid:Int, data:String)
 		Local e:Object = Null
 		If Eof() Then Return False
-		? Threaded
+? Threaded
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
 		Local startingMS:Int = MilliSecs()
 		While packetThread.Running()
 			If MilliSecs() - startingMS > 100 Then
 				packetThread.Detach()
-				TPrint "[WARNING] Client " + name + " Stream Time-Out for PacketID: " + pid + " Data: " + data
+				TPrint "2[WARNING] Client " + name + " Stream Time-Out for PacketID: " + pid + " Data: " + data
 				messagesRecivedRecently:+15
 				Return False
 			EndIf
 		Wend
 		e = packetThread.wait()
 		If e Then
-			TPrint("[ERROR] Client " + name + " Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("2[ERROR] Client " + name + " Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
-		? Not Threaded
+? Not Threaded
 		'TPrint "Sending Unthreaded Packet.." + pid + " Data: " + data
 		Local packetSendMS = MilliSecs()
 		e = SendPacketToStreamThread(New PPacket.Create(Self, pid, data))
 		If e Then
-			TPrint("[ERROR] Client " + name + " Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("[ERROR] Client " + name + " Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
 		packetSendMS = MilliSecs() - packetSendMS
@@ -528,7 +539,7 @@ Type TServerClient Extends TBaseClient
 			If server Then server.Kick(Self, "Packets Took Too Long to Send")
 			TPrint "[WARNING] Client " + name + " Stream Time-Out " + PacketSendMS + " For PacketID: " + pid + " Data: " + data
 		EndIf
-		?
+?
 		Return True
 	End Method
 	

@@ -39,7 +39,7 @@ mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip", "network" 
 mainChat.NewVariable("port", settingsIni.GetString( "server_port", "network" ))
 Local screenMode:int = 0
 If settingsIni.ItemExists("fullscreen", "graphics") Then
-	screenMode = settingsIni.GetInteger( "screen_mode", "graphics" ) * 32
+	screenMode = settingsIni.GetInteger( "fullscreen", "graphics" ) * 32
 Else
 	settingsIni.set("fullscreen", screenMode / 32, "graphics")
 EndIf
@@ -65,7 +65,7 @@ Global passwordCH:sTextBox = New sTextBox
 usernameCH.Prompttxt = "Username: "
 usernameCH.currentString = ""
 If settingsIni.ItemExists("user_name", "game") Then
-	usernameCH.currentString = settingsIni.GetInteger( "user_name", "game" )
+	usernameCH.currentString = settingsIni.GetString( "user_name", "game" )
 EndIf
 If usernameCH.currentString Then
 	passwordCH.enabled = True
@@ -133,9 +133,9 @@ Function DoMain()
 				Else
 					If lastConnectTry - MilliSecs() < - 5000 Then If Not Connect(mainChat.GetVariable("server_ip".tolower())._var,  ..
 							Int(mainChat.GetVariable("port")._var)) Then
-							client = Null
-							lastConnectTry = MilliSecs()
-						EndIf
+						client = Null
+						lastConnectTry = MilliSecs()
+					EndIf
 				EndIf
 		
 			Case 1
