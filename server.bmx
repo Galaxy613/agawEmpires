@@ -13,10 +13,10 @@ Global currentLag = 0
 
 Global settingsIni:INI_File = OpenINI("server-settings.ini")
 
-If FileType("server-settings.ini") = 0 Then
+If FileSize("server-settings.ini") =< 0 or FileType("server-settings.ini") = 0 Then
 	Notify( "Creating 'server-settings.ini' and closing, edit it to change defaults." )
-	settingsIni.set("game_id", "100")
-	settingsIni.set("server_port", DEFAULTPORT)
+	settingsIni.set("game_id", "100", "game")
+	settingsIni.set("server_port", DEFAULTPORT, "network")
 	
 	settingsIni.save("server-settings.ini")
 	End
@@ -40,18 +40,16 @@ Else
 	TPrint "[START] Server Started on " + DEFAULTPORT
 End If
 
-curGame.gID = settingsIni.GetInteger("game_id")
+curGame.gID = settingsIni.GetInteger("game_id", "game")
 If Not curGame.LoadFromFile()
 	TPrint "[START] Map does not exist for game ID: " + curGame.gID
-	TPrint "[START] Please use the createstarfield amd/or randomstarfield commands to create the map before users connect."
+	TPrint "[START] Please use the createstarfield and/or randomstarfield commands to create the map before users connect."
 Else
 	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
 
-Global playGame = False ''GH#6 How is this different than server.gamePaused???
 server.gamePaused = true
 If curGame Then If curGame.players.Count() > 2 Then
-	playGame = True
 	server.gamePaused = false
 End If
 
@@ -86,8 +84,8 @@ While (Not AppTerminate()) And (Not endInputThreadBool)
 		Local printTime:Int = False
 		If serverUpdateTime > 1000 Then TPrint "[WARNING] Unusual amount of time required for update! " + serverUpdateTime ; printTime = True
 		
-		If Not playGame Then SetColor 255,0,0
-		DrawText "Players: " + server.m_clients.Count() + "    PG:" + playGame, 0, 16
+		If server.gamePaused Then SetColor 255,0,0
+		DrawText "Players: " + server.m_clients.Count() + "    Paused:" + server.gamePaused, 0, 16
 		SetColor 255,255,255
 		Local scCount:Int = 0
 		For Local tc:TServerClient = EachIn server.m_clients
@@ -279,7 +277,7 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				If command.Length > 1 Then
 					DEFAULTPORT = Int(command[1])
-					settingsIni.set("server_port", DEFAULTPORT)
+					settingsIni.set("server_port", DEFAULTPORT, "network")
 				EndIf
 				networkMutex.Unlock()
 				
@@ -296,31 +294,18 @@ Function InputThread:Object(data:Object)
 				networkMutex.Unlock()
 				
 			Case "togglegame"
-				networkMutex.Lock()
-				If playGame = False Then
-					playGame = True
-					If server Then
-						server.gamePaused = False
-						server.lastUpdate = MilliSecs()
-					EndIf
-				Else
-					playGame = False
-					If server Then
-						server.gamePaused = True
-						server.lastUpdate = MilliSecs()
-					EndIf
-				EndIf
-				
 				If server Then
-					If server.gamePaused Then
+					networkMutex.Lock()
+					If server.gamePaused = False Then
+						server.gamePaused = True
 						TPrint "[INFO] Game Updates Stopped"
-						playGame = False
 					Else
+						server.gamePaused = False
 						TPrint "[INFO] Game Updates Resumed"
-						playGame = True
-					End If
-				End If
-				networkMutex.Unlock()
+					EndIf
+					server.lastUpdate = MilliSecs()
+					networkMutex.Unlock()
+				EndIf
 				
 			Case "loadgame"
 				networkMutex.Lock()
@@ -328,7 +313,7 @@ Function InputThread:Object(data:Object)
 					curGame.SaveToFile()
 					curGame = New TGame
 					curGame.gID = Int(command[1])
-					settingsIni.set("game_id", curGame.gID)
+					settingsIni.set("game_id", curGame.gID, "game")
 					curGame.LoadFromFile()
 				Else
 					TPrint "[Game] Unrecongized command argument amount. Expecting 1 arguments"
@@ -339,7 +324,7 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				If command.Length = 2 Then
 					curGame.gID = Int(command[1])
-					settingsIni.set("game_id", curGame.gID)
+					settingsIni.set("game_id", curGame.gID, "game")
 				EndIf
 				curGame.SaveToFile()
 				TPrint "[Saved]"

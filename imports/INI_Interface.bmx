@@ -4,10 +4,13 @@ Rem
 	File: INI_Interface.bmx
 	Purpose: Saving/Loading, Phrases INI Files for use inside of games and applications
 
+	WARNING: Due to some quirk in the latest BlitzMax NG, blank groups are no longer accepted.
+	
 '---------------------------------------------------------------------------------------------------
 End Rem
 
 Type INI_File
+	Global debug = 0
 	
 	Field Filename:String
 	Field Groups:TList = CreateList()
@@ -18,7 +21,7 @@ Type INI_File
 	
 	'#Region Retrieve Data
 	
-	Method ItemExists:Int(Name:String, group:String = "")
+	Method ItemExists:Int(Name:String, group:String)
 		Local iItem:INI_Item = Null
 		
 		Name = Lower(Name) ; Group = Lower(Group)
@@ -32,16 +35,16 @@ Type INI_File
 		Return 0
 	End Method
 	
-	Method exists:Int(Name:String, group:String = "")
+	Method exists:Int(Name:String, group:String)
 		Return ItemExists(Name, Group)
 	End Method
 	
-	Method GetString:String(name:String, group:String = "")
+	Method GetString:String(name:String, group:String)
 		Local iItem:INI_Item = Null
 		
 		Name = Lower(Name) ; Group = Lower(Group)
 		
-		If group = "" Then Print "Warning! Possible error, group is set to default."
+		If group = "" Then Print "INI Warning! Group cannot be blank!"
 		
 		For iItem = EachIn Items
 			If iItem.Name = name And iItem.Group = group Then
@@ -52,12 +55,12 @@ Type INI_File
 		Return ""
 	End Method
 	
-	Method GetFloat:Float(name:String, group:String = "")
+	Method GetFloat:Float(name:String, group:String)
 		Local iItem:INI_Item = Null
 		
 		Name = Lower(Name) ; Group = Lower(Group)
 		
-		If group = "" Then Print "Warning! Possible error, group is set to default."
+		If group = "" Then Print "INI Warning! Group cannot be blank!"
 		
 		For iItem = EachIn Items
 			If iItem.Name = name And iItem.Group = group Then
@@ -69,12 +72,12 @@ Type INI_File
 		Return 0.0
 	End Method
 	
-	Method GetInteger:Int(name:String, group:String = "")
+	Method GetInteger:Int(name:String, group:String)
 		Local iItem:INI_Item = Null
 		
 		Name = Lower(Name) ; Group = Lower(Group)
 		
-		If group = "" Then Print "Warning! Possible error, group is set to default."
+		If group = "" Then Print "INI Warning! Group cannot be blank!"
 		
 		For iItem = EachIn Items
 			If iItem.Name = name And iItem.Group = group Then
@@ -88,15 +91,18 @@ Type INI_File
 	'#End Region
 	
 	'#Region Editing Data
-	Method set(name:String, data:String, group:String = "")
+	Method set(name:String, data:String, group:String)
+		If group = "" Then RuntimeError "INI Error! Group cannot be blank!"
 		if exists(name, group) Then
+			If debug Then Print "Set - modify :: "+name
 			ModifyItem(name, data, group)
 		Else
+			If debug Then Print "Set - add :: "+name
 			AddItem(name, data, group)
 		EndIf
 	EndMethod
 	
-	Method ModifyItem(name:String, data:String, group:String = "")
+	Method ModifyItem(name:String, data:String, group:String)
 		Local iItem:INI_Item = Null
 		
 		Name = Lower(Name) ; Group = Lower(Group)
@@ -108,18 +114,28 @@ Type INI_File
 		Next
 	End Method
 	
-	Method AddItem:INI_Item(name:String, data:String, group:String = "") ' #TODO merge with ModifyItem and rename to "set"
+	Method AddItem:INI_Item(name:String, data:String, group:String) ' #TODO merge with ModifyItem and rename to "set"
 		Local tmp:INI_Item = INI_Item.Create(name, data, group)
 		Local tempStr:String
 		Local NewGroup = True
 		
 		'We need to check if this item is being added to a new group.
+		If debug Then Print "[INI:AddItem] Group count: "+Groups.Count()
 		For tempStr = EachIn Groups
-			If tempStr = Group Then NewGroup = False;Exit
+			If debug Then Print "[INI:AddItem] Found group: ["+tempStr+"]"
+			If tempStr = Group Then
+				If debug Then Print "[INI:AddItem] Found group: ["+group+"]"
+				NewGroup = False
+				Exit
+			EndIf
 		Next
 		
 		'If so, make a new group
-		If NewGroup Then ListAddLast Groups, group
+		If NewGroup Then
+			If debug Then Print "[INI:AddItem] Making group: ["+group+"]"
+			ListAddLast Groups, group
+			If debug Then Print "[INI:AddItem] New group count: "+Groups.Count()
+		EndIf
 		
 		ListAddLast Items, tmp
 		Return tmp
@@ -128,13 +144,13 @@ Type INI_File
 	
 	'#Region Setting Data
 	Method Setup:INI_File(File:TStream)
-		Local CurrentGroup:String = ""
+		Local Currentgroup:String
 		Local CurrentLine:String
 		Local TempIndex:Int
 		Local TempStr1:String, TempStr2:String
 		ListAddLast Groups, String("")
 		
-		If _debug Then Print "INI_FILE: Setup Start"
+		'If _debug Then Print "INI_FILE: Setup Start"
 		
 		While Not Eof(File)
 			CurrentLine = ReadLine(file)						'Read Next Item
@@ -167,21 +183,27 @@ Type INI_File
 			'If Replace(CurrentLine," ","") = "" Then CurrenGroup = ""	' Should clear the current
 			'					group when a space is encountered, I don't know if I want this yet.	
 		Wend
-		If _debug Then Print "INI_FILE: Setup End"
+		'If _debug Then Print "INI_FILE: Setup End"
 		Return Self
 	End Method
 	
 	Method Save(Filename:String)
 		Local SaveFile:TStream = OpenFile(Filename, 0, 1)
+		If debug Then Print "[INI] Attempting to save "+ Items.Count() +" to "+Filename
 		
-		For Group:String = EachIn Groups
+		Local Group:String
+		Local Item:INI_Item
+		For Group = EachIn Groups
+			If debug Then Print( "[INI]     " + Group)
 			If Group <> "" Then
-				WriteLine SaveFile, "";WriteLine SaveFile, "[" + Group + "]"
+				WriteLine SaveFile, ""
+				WriteLine SaveFile, "[" + Group + "]"
 			EndIf
 			
-			For Item:INI_Item = EachIn Items
+			For Item = EachIn Items
 				If Item.Group = Group Then
 					WriteLine SaveFile, Item.Name + " = " + Item.Data
+					If debug Then Print( "[INI]     " + Group + Item.Name + " = " + Item.Data )
 				End If
 			Next
 		Next
@@ -195,11 +217,14 @@ Type INI_File
 	'--------------------------------------------------------
 	'#Region Functions
 	Function Load:INI_File(filename:String)
-		If _debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
+		'If _debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
 		If filename =< 0 Then RuntimeError "ERROR :: INI_File.Load :: Was not given a proper filename!!"
 		Local file:TStream = OpenFile(filename, 1, 0)
 		If Not file Then RuntimeError "ERROR :: INI_File.Load :: Can not open '" + filename + "'!"
-		If FileSize(filename) =< 0 Then RuntimeError "ERROR :: INI_File.Load :: File does not exist '"+SceneFilename+"'!"
+		If FileSize(filename) =< 0 Then
+			Print "ERROR :: INI_File.Load :: File does not exist '"+filename+"'!"
+			Return new INI_File
+		EndIf
 		
 		Local iFile:INI_File = New INI_File.Setup(file)
 		iFile.Filename = StripDir(filename)

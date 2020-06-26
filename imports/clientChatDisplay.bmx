@@ -4,7 +4,7 @@ This is just a fancy way to display messages to the client user.
 
 end rem
 
-Import "toolbox.bmx"
+Import "Toolbox.bmx"
 
 Type _Msg
 	Field txt:String = "", clr = 0, ms:Int
@@ -75,14 +75,14 @@ Type sChatHandler
 	Global VarList:TList = CreateList()
 	
 	Method add(str:String, clr = 0)
-		ListAddLast MessageList, New(_Msg).s(str, clr)
+		ListAddLast MessageList, New _Msg.s(str, clr)
 		Print clr+"] "+CurrentTime()+" :: "+str
 	End Method
 	
 	Method NewVariable(nme:String, tvar:String = "")
 		nme = nme.ToLower()
 		add("New Var '" + nme + "' Set to '" + tvar + "'")
-		ListAddLast VarList,New(sVar).s(nme,tvar)
+		ListAddLast VarList,New sVar.s(nme,tvar)
 	End Method
 	
 	Method AddVariable(aVar:sVar)

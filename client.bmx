@@ -15,26 +15,39 @@ Incbin "art/windowbackground.png"
 Global mainChat:sChatHandler = New sChatHandler
 Global attacheUpdates:sChatHandler = New sChatHandler
 
-Global settingsIni:INI_File = OpenINI("settings.ini")
+Global settingsIni:INI_File = OpenINI("client-settings.ini")
 
-If FileType("settings.ini") = 0 Then
-	Notify( "Setting resolution to 1280x720. Modify your settings by opening 'settings.ini'!" )
+''' Setup the INI settings that don't have a default value and start saving it.
+If FileType("client-settings.ini") = 0 Then
+	Notify( "Setting resolution to 1280x720. Modify your settings by opening 'client-settings.ini'!" )
 	
-	settingsIni.set("screen_width", 1280)
-	settingsIni.set("screen_height", 720)
-	settingsIni.set("server_ip", "127.0.0.1")
-	settingsIni.set("server_port", DEFAULTPORT)
+	Local serverName:String = RequestText("Set Server", "Please input the server IP or server domain.", "127.0.0.1")
 	
-	settingsIni.save("settings.ini")
+	if not serverName or serverName = "" Then RuntimeError( "Client needs a server to connect to." )
+	
+	settingsIni.set("screen_width", 1280, "graphics")
+	settingsIni.set("screen_height", 720, "graphics")
+	settingsIni.set("server_ip", serverName, "network")
+	settingsIni.set("server_port", DEFAULTPORT, "network")
+	
+	settingsIni.save("client-settings.ini")
 EndIf
 
-scnx = settingsIni.GetInteger( "screen_width" )
-scny = settingsIni.GetInteger( "screen_height" )
-mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip" ))
-mainChat.NewVariable("port", settingsIni.GetString( "server_port" ))
+scnx = settingsIni.GetInteger( "screen_width", "graphics" )
+scny = settingsIni.GetInteger( "screen_height", "graphics" )
+mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip", "network" ))
+mainChat.NewVariable("port", settingsIni.GetString( "server_port", "network" ))
 Local screenMode:int = 0
-If settingsIni.ItemExists("screen_mode") Then
-	screenMode = settingsIni.GetInteger( "screen_mode" )
+If settingsIni.ItemExists("fullscreen", "graphics") Then
+	screenMode = settingsIni.GetInteger( "fullscreen", "graphics" ) * 32
+Else
+	settingsIni.set("fullscreen", screenMode / 32, "graphics")
+EndIf
+Local screenHertz:int = 60
+If settingsIni.ItemExists("hertz", "graphics") Then
+	screenHertz = settingsIni.GetInteger( "hertz", "graphics" )
+Else
+	settingsIni.set("hertz", screenHertz, "graphics")
 EndIf
 
 AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
@@ -51,8 +64,8 @@ Global usernameCH:sTextBox = New sTextBox
 Global passwordCH:sTextBox = New sTextBox
 usernameCH.Prompttxt = "Username: "
 usernameCH.currentString = ""
-If settingsIni.ItemExists("user_name") Then
-	usernameCH.currentString = settingsIni.GetInteger( "user_name" )
+If settingsIni.ItemExists("user_name", "game") Then
+	usernameCH.currentString = settingsIni.GetString( "user_name", "game" )
 EndIf
 If usernameCH.currentString Then
 	passwordCH.enabled = True
@@ -87,7 +100,7 @@ If client Then
 	If client.Connected() Then client.SendPacket(Packet.ID_MESSAGESELF, "says Goodbye!")
 	client.Close()
 End If
-settingsIni.save("settings.ini")
+settingsIni.save("client-settings.ini")
 End '''''''''''''''''''''```````````'`'`'`'`'`''`'`''`''`'`''`'`'`''`````'`'`'`'`'`''`'`''`''`'`''`'`'`''`````'`'`'`'`'`''`'`''`''`'`''`'`'`''`
 
 Function DoMain()
@@ -120,9 +133,9 @@ Function DoMain()
 				Else
 					If lastConnectTry - MilliSecs() < - 5000 Then If Not Connect(mainChat.GetVariable("server_ip".tolower())._var,  ..
 							Int(mainChat.GetVariable("port")._var)) Then
-							client = Null
-							lastConnectTry = MilliSecs()
-						EndIf
+						client = Null
+						lastConnectTry = MilliSecs()
+					EndIf
 				EndIf
 		
 			Case 1
@@ -238,7 +251,7 @@ Function DoLoginScreen()
 		End If
 		If usernameCH.currentString <> "" And passwordCH.currentString <> "" Then
 			client.SendLogin(usernameCH.currentString, passwordCH.currentString)
-			settingsIni.set("user_name", usernameCH.currentString)
+			settingsIni.set("user_name", usernameCH.currentString, "game")
 			passwordCH.currentString = ""
 			usernameCH.enabled = False
 			passwordCH.enabled = False

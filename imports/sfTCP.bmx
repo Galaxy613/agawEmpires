@@ -12,7 +12,8 @@ Rem
 
 endrem
 
-Strict
+SuperStrict
+
 Import brl.LinkedList
 Import brl.System
 Import brl.Socket
@@ -20,7 +21,7 @@ Import brl.SocketStream
 Import brl.Retro
 Import brl.EventQueue
 Import brl.PNGLoader
-Import "toolbox.bmx"
+Import "Toolbox.bmx"
 Include "networkHelpers.bmx"
 Include "GameObjects.bmx"
 
@@ -70,7 +71,7 @@ Function SendPacketToStreamThread:Object(data:Object)
 		packetData.stream.WriteInt(packetData.data.Length)
 		packetData.stream.WriteLine(packetData.data)
 	Catch e:Object
-		'TPrint("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+		'TPrint("SendPacketToStreamThread [ERROR] Packet Sending Failure: " + e.ToString() + "")
 		Return e
 	End Try
 	
@@ -96,27 +97,28 @@ Type TBaseClient Extends TStream Abstract
 	Field recievedMessages:TList = CreateList(), ply:TPlayer = Null
 	
 	Field name:String, pass:String, auth:Int = False, stat:Int
-	Field IsSyncingTGame = False
+	Field IsSyncingTGame:Int = False
 	
 	Method Init(Socket:TSocket)
 		m_socket = Socket
 		If m_socket
-			m_sip = m_socket.RemoteIp()
+			m_sip = DottedIPToInt( m_socket.RemoteIp() )
 		End If
-		name = "cadet" + (GetIPAddressAsInt() Mod 999)
+		name = "cadet" + (GetIPAddressAsInt() Mod 9999)
 	End Method
 	
-	Method read:Int(Buf:Byte Ptr, Count:Int)
-		Return m_socket.Recv(Buf, Count)
+	Method Read:Long( buf:Byte Ptr, count:Long ) Override
+		Return m_socket.Recv(Buf, Size_T(Count))
 	End Method
 	
-	Method Write:Int(Buf:Byte Ptr, Count:Int)
-		Return m_socket.Send(Buf, Count)
+	Method Write:Long( buf:Byte Ptr, count:Long ) Override
+		Return m_socket.Send(Buf, Size_T(Count))
 	End Method
 	
-	Method SendPacket(pid:Int, data:String)
+	Method SendPacket:Int(pid:Int, data:String)
 		If Eof() Then Return False
-		? Threaded
+? Threaded
+		
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
 		Local startingMS:Int = MilliSecs()
 		While packetThread.Running()
@@ -124,20 +126,20 @@ Type TBaseClient Extends TStream Abstract
 		Wend
 		Local e:Object = packetThread.wait()
 		If e Then
-			TPrint("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("1[ERROR] Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
-		? Not Threaded
-		TPrint "Sending Unthreaded Packet.." + pid + " Data: " + data
+? Not Threaded
+		TPrint "Sending Unthreaded Packet.. " + pid + " Data: " + data
 		Try
 			WriteInt(pid)
 			WriteInt(data.Length)
 			WriteLine(data)
 		Catch e:Object
-			recievedMessages.AddLast("[ERROR] Packet Sending Failure:" + e.ToString() + "`1")
+			recievedMessages.AddLast("[ERROR] Packet Sending Failure: " + e.ToString() + "`1")
 			Close()
 		End Try
-		?
+?
 		Return True
 	End Method
 	
@@ -178,9 +180,18 @@ Type TBaseClient Extends TStream Abstract
 		End If
 	End Method
 	
-	Method Connect:Int(RemoteIp:Int, RemotePort:Int)
-		m_sip = RemoteIp
-		Return m_socket.Connect(RemoteIp, RemotePort)
+	Method Connect:Int(RemoteIp:String, RemotePort:Int)
+		m_sip = DottedIPToInt(RemoteIp)
+		Local infos:TAddrInfo[] = AddrInfo(RemoteIp, RemotePort, New TAddrInfo(AF_INET_, SOCK_STREAM_))
+		
+		If Not infos Then
+			Print "Hostname could not be resolved."
+			End ' TODO don't commit this
+		End If
+		Local info:TAddrInfo = infos[0]
+		Print "IP address of " + RemoteIp + " is " + info.HostIp()
+		
+		Return m_socket.Connect(info)
 	End Method
 	
 	Method Connected:Int()
@@ -190,7 +201,7 @@ Type TBaseClient Extends TStream Abstract
 		Return False
 	End Method
 	
-	Method Update()
+	Method Update:Int()
 		Local msgID:Int = -1, msgTextLength:Int, msgText:String = ""
 		'? Not Debug
 		Try
@@ -225,7 +236,7 @@ Type TBaseClient Extends TStream Abstract
 		Return (m_sip Shr 24) + separator + (m_sip Shr 16 & 255) + separator + (m_sip Shr 8 & 255) + separator + (m_sip & 255)
 	End Method
 	
-	Method HandleMessage(id:Int, data:String) Abstract
+	Method HandleMessage:Int(id:Int, data:String) Abstract
 	
 End Type
 
@@ -263,14 +274,14 @@ Type TServer
 	Method Start:Int()
 		If m_socket <> Null
 			If m_socket.Bind(m_port) = True
-				m_socket.Listen(0)
+				m_socket.Listen(10)
 				Return True
 			End If
 		End If
 		Return False
 	End Method
 	
-	Method SendBroadcast(aText:String, fromServer = True)
+	Method SendBroadcast(aText:String, fromServer:Int = True)
 		TPrint "[Broadcast] " + aText
 		aText = curGame.GetYear() + " " + aText
 		For Local mClient:TServerClient = EachIn m_clients
@@ -342,7 +353,8 @@ Type TServer
 		
 		'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 		''' Accept new connections
-		curGame.ddebugStr = "Sector c" ; Local Socket:TSocket = m_socket.Accept(0)
+		curGame.ddebugStr = "Sector c"
+		Local Socket:TSocket = m_socket.Accept(5)
 		If Socket
 			AddClient(New TServerClient.Create(Socket))
 		End If
@@ -437,7 +449,7 @@ Type TServer
 	Method AddClient(client:TServerClient)
 		client.SetLink(m_clients.AddLast(client))
 		client.SendPing()
-		TPrint "[INFO] Client Connected from: " + client.GetIPAddressAsString()
+		TPrint "[INFO] "+"Connected from " + client.m_socket.RemoteIp() + ":" + client.m_socket.RemotePort()
 		client.SendText("[MOTD] " + MOTD, 5)
 		If recentBroadcasts.Count() > 0 Then
 			For Local str:String = EachIn recentBroadcasts
@@ -466,7 +478,7 @@ End Type
 Type TServerClient Extends TBaseClient
 	
 	Field m_link:TLink
-	Field messagesRecivedRecently:Int = 0, lastSpamCheck = MilliSecs(), lastObjSync:Int = MilliSecs()
+	Field messagesRecivedRecently:Int = 0, lastSpamCheck:Int = MilliSecs(), lastObjSync:Int = MilliSecs()
 	Field acc:Account = Null
 	Field hiccupChecks:Int[10]
 	
@@ -495,31 +507,31 @@ Type TServerClient Extends TBaseClient
 		End If
 	End Method
 	
-	Method SendPacket(pid:Int, data:String)
+	Method SendPacket:Int(pid:Int, data:String)
 		Local e:Object = Null
 		If Eof() Then Return False
-		? Threaded
+? Threaded
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
 		Local startingMS:Int = MilliSecs()
 		While packetThread.Running()
 			If MilliSecs() - startingMS > 100 Then
 				packetThread.Detach()
-				TPrint "[WARNING] Client " + name + " Stream Time-Out for PacketID: " + pid + " Data: " + data
+				TPrint "2[WARNING] Client " + name + " Stream Time-Out for PacketID: " + pid + " Data: " + data
 				messagesRecivedRecently:+15
 				Return False
 			EndIf
 		Wend
 		e = packetThread.wait()
 		If e Then
-			TPrint("[ERROR] Client " + name + " Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("2[ERROR] Client " + name + " Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
-		? Not Threaded
+? Not Threaded
 		'TPrint "Sending Unthreaded Packet.." + pid + " Data: " + data
 		Local packetSendMS = MilliSecs()
 		e = SendPacketToStreamThread(New PPacket.Create(Self, pid, data))
 		If e Then
-			TPrint("[ERROR] Client " + name + " Packet Sending Failure:" + e.ToString() + "`1")
+			TPrint("[ERROR] Client " + name + " Packet Sending Failure: " + e.ToString() + "`1")
 			Return False
 		End If
 		packetSendMS = MilliSecs() - packetSendMS
@@ -527,7 +539,7 @@ Type TServerClient Extends TBaseClient
 			If server Then server.Kick(Self, "Packets Took Too Long to Send")
 			TPrint "[WARNING] Client " + name + " Stream Time-Out " + PacketSendMS + " For PacketID: " + pid + " Data: " + data
 		EndIf
-		?
+?
 		Return True
 	End Method
 	
@@ -565,7 +577,7 @@ Type TServerClient Extends TBaseClient
 		End If
 	End Method
 	
-	Method DealWithFleetRequest(packetArray:String[])
+	Method DealWithFleetRequest:Int(packetArray:String[])
 		''' fromnetID, tonetID, ships
 		If packetArray.Length <> 3 Then SendText("[Server] Incomplete Fleet Dispatch Request Packet, Try Again", 1) ; Return False
 		Local fromSys:TSystem = curGame.FindSystemID(Int(packetArray[0]))
@@ -581,7 +593,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method StartSyncing()
+	Method StartSyncing:Int()
 		If Not auth Then Return False
 		If IsSyncingTGame = False Then
 			IsSyncingTGame = True
@@ -596,7 +608,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncSystems(tmp:TSystem)
+	Method SyncSystems:Int(tmp:TSystem)
 		'If CurrentTSystem = 0 Then TPrint "[Info] Starting to Sync Systems for " + name
 		curGame.ddebugStr = "Sector 3.1"
 		CurrentTSystem:+1
@@ -623,7 +635,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncFleets(tmp:TFleet)
+	Method SyncFleets:Int(tmp:TFleet)
 		'If CurrentTFleet = 0 Then TPrint "[Info] Starting to Sync Fleets for " + name
 		CurrentTFleet:+1
 		If Not tmp Then Return False
@@ -650,7 +662,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method SyncPlayers(tply:TPlayer)
+	Method SyncPlayers:Int(tply:TPlayer)
 		'if CurrentTPlayer = 0 Then TPrint "[Info] Starting to Sync Players for " + name
 		CurrentTPlayer:+1
 		If Not tply Then Return False
@@ -675,7 +687,7 @@ Type TServerClient Extends TBaseClient
 		Return True
 	End Method
 	
-	Method HandleMessage(id:Int, data:String)
+	Method HandleMessage:Int(id:Int, data:String)
 		Local packetArray:String[] = data.Split("`")
 		'	If id <> Packet.ID_PING And id <> Packet.ID_PONG Then TPrint "[CLIENT] Packet:'" + name + "' ID:" + id + " Data:'" + data + "' Args:" + packetArray.Length
 		messagesRecivedRecently:+1
@@ -986,20 +998,20 @@ Type TMasterClient Extends TBaseClient
 		SendPacket(Packet.ID_UPDATEALL, "plz")
 	End Method
 	
-	Method HandleMessage(id:Int, data:String)
+	Method HandleMessage:Int(id:Int, data:String)
 		Local packetArray:String[] = data.Split("`")
 		If id <> Packet.ID_PING And id <> Packet.ID_PONG Then Print "MClient Packet Recived! ID:" + id + " Data:'" + data + "' Args:" + packetArray.Length
 		Select id
 			Case Packet.ID_LOGIN
 				If Not packetArray.Length > 0 Then
 					TPrint("[WARNING] Packet.ID_LOGIN Packet didn't provide enough data: '" + data + "'")
-					Return
+					Return false
 				EndIf
 				Select Int(packetArray[0])
 					Case 1 ''' WOO! We're in!
 						If Not packetArray.Length > 1 Then
 							TPrint("[WARNING] Packet.ID_LOGIN Packet didn't provide enough data: '" + data + "'")
-							Return
+							Return False
 						EndIf
 						name = packetArray[1]
 						TPrint("[INFO] Logged in as: " + name)
