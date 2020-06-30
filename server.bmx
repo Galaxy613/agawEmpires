@@ -1,9 +1,8 @@
-'Framework brl.blitz
-Import brl.standardio
+Framework brl.standardio
 Import brl.stream
 Import brl.socket
 Import brl.linkedlist
-Import brl.glmax2d
+Import brl.FileSystem
 
 Import "imports/sfTCP.bmx"
 Import "imports/INI_Interface.bmx"
@@ -13,7 +12,7 @@ Global currentLag = 0
 
 Global settingsIni:INI_File = OpenINI("server-settings.ini")
 
-If FileSize("server-settings.ini") =< 0 or FileType("server-settings.ini") = 0 Then
+If FileSize("server-settings.ini") =< 0 Or FileType("server-settings.ini") = 0 Then
 	Notify( "Creating 'server-settings.ini' and closing, edit it to change defaults." )
 	settingsIni.set("game_id", "100", "game")
 	settingsIni.set("server_port", DEFAULTPORT, "network")
@@ -48,9 +47,9 @@ Else
 	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
 
-server.gamePaused = true
+server.gamePaused = True
 If curGame Then If curGame.players.Count() > 2 Then
-	server.gamePaused = false
+	server.gamePaused = False
 End If
 
 Local serverUpdateTime:Int = MilliSecs(), msmax:Int, msmid:Float, lastServerStartTry%=MilliSecs()

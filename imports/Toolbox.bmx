@@ -2,8 +2,13 @@ Rem
 TOOL BOX DE KARLOS CON UNA K
 End Rem
 
-'Import "Globals.bmx"
-'Import "LuaConsole.bmx"
+?console
+Framework brl.standardio
+Import BRL.System
+Import BRL.Stream
+Import BRL.Retro
+?
+
 '''
 Global scnx = 1280
 Global scny = 720
@@ -15,11 +20,12 @@ Global msx, msy, msh[4], msd[4]
 Global currentXPan:Float = 0, currentYPan:Float = 0
 
 '''
+?not console
 Global MouseImg:TImage
 Global sfont:TImageFont
 Global mfont:TImageFont
 Global lfont:TImageFont
-
+?
 '''
 Global gx# = 0.0 , gy# = 0.0
 Global dTime# = 0.0, tTime% = MilliSecs()
@@ -31,6 +37,7 @@ Function PrintConsole(str:String) '' Replacing the LuaConsole's one.
 	Print str
 End Function
 
+?not console
 Function UpdateInput()
 	msx = MouseX()
 	msy = MouseY()
@@ -39,6 +46,7 @@ Function UpdateInput()
 		msd[ii] = MouseDown(ii)
 	Next
 End Function
+?
 
 Function TPrint(str:String)
 	Print "[" + CurrentDate() + " " + CurrentTime() + "] " + str
@@ -46,13 +54,16 @@ End Function
 
 Type tb {expose static}
 	Global Token:tbToken
+?not console
 	Global Draw:tbDraw
+?
 	Global list:tbList
 	Global Math:tbMath
 	Global PointIn:tbPointIn
 	Global Text:tbText
 	Global this:tb
 	
+?not console
 	Function KeysDown(key1, key2)
 		If KeyDown(key1) Then Return True
 		If KeyDown(key2) Then Return True
@@ -64,10 +75,13 @@ Type tb {expose static}
 		If KeyHit(key2) Then Return True
 		Return False
 	End Function
+?
 
 	Function Init()
 		Token:tbToken = New tbToken
+?not console
 		Draw:tbDraw = New tbDraw
+?
 		list:tbList = New tbList
 		Math:tbMath = New tbMath
 		PointIn:tbPointIn = New tbPointIn
@@ -99,13 +113,15 @@ Type tb {expose static}
 		Return AvgMemUsuage
 	EndMethod
 	
+?not console
 	Function FlushKeyHits()
 		For Local I:Int = 0 Until 256
 			KeyHit(I)
 		Next
 	End Function
+?
 
-	Method RunErr(txt$="There's an error up in this foo'!")
+	Method RunErr(txt$="Unrecoverable Runtime Error")
 		RuntimeError txt$
 	End Method
 End Type
@@ -207,6 +223,7 @@ Method MouseInRect%(rx,ry,rw,rh)
 	Return 0
 End Method
 
+?not console
 Method MouseInImage(img:TImage, x, y, centered = False)
 	Local tX, tY
 	If centered Then
@@ -240,6 +257,7 @@ Method PointInText(px,py,tx,ty,txt$,centered=False)
 	
 	If centered = False Then Return PointInRect(px,py,tx,ty,txtwidth,TextHeight(txt$))
 End Method
+?
 
 Method CheckFuzz(x:Float, y:Float, z:Float) ' (x > y - z) And (x < y + z)
 	' Check fuzzly, instead of a streight (x = y) this allows for some flexiblity.
@@ -284,7 +302,36 @@ Type tbText {expose static}
 		End If
 		Return "false"
 	End Method
+
+	Method WriteAutoMultiText(t:String, file:TStream, maxCharWidth:Int=40, prefix$="")
+		If t.Length =< maxCharWidth Then WriteLine file, prefix+t
+		If t = "" Then Return 0
+		
+		Local words:String[]=t.split(" ")
+		
+		Local tmpStr$, lastStr$
+		Local wordItr = 0
+		
+		While True
+			lastStr = tmpStr
+			tmpStr :+ words[wordItr]
+			
+			If tmpStr.Length < maxCharWidth Then
+				wordItr:+ 1 
+				tmpStr:+" "
+			Else
+				WriteLine file, prefix+lastStr
+				tmpStr=""
+			EndIf
+			
+			If wordItr => words.length Then '' If we are have finished...
+				If tmpStr <> "" Then WriteLine file, prefix+tmpStr
+				Exit
+			EndIf
+		Wend
+	EndMethod
 	
+?not console
 	Method DirectFileParagraph(file:TStream,x,y,displace=0,maxLines=-1,comments=False)
 		Local i,cnt,dmL=(displace+maxLines),currentLine$
 		
@@ -311,179 +358,155 @@ Type tbText {expose static}
 		SeekStream file,0
 	End Method
 
-Method WriteAutoMultiText(t:String, file:TStream, maxCharWidth:Int=40, prefix$="")
-	If t.Length =< maxCharWidth Then WriteLine file, prefix+t
-	If t = "" Then Return 0
-	
-	Local words:String[]=t.split(" ")
-	
-	Local tmpStr$, lastStr$
-	Local wordItr = 0
-	
-	While True
-		lastStr = tmpStr
-		tmpStr :+ words[wordItr]
+	Method DrawAutoMultiText:Int(t:String, x:Float, y:Float, maxCharWidth:Int=40, startLine:Int = 1, endLine:Int=99999)
+		If t.length =< maxCharWidth Then DrawText t,x,y
+		If t = "" Then Return 0
 		
-		If tmpStr.Length < maxCharWidth Then
-			wordItr:+ 1 
-			tmpStr:+" "
-		Else
-			WriteLine file, prefix+lastStr
-			tmpStr=""
-		EndIf
+		Local words:String[]=t.split(" ")
+		Local lineheight:Int=TextHeight(" ")
 		
-		If wordItr => words.length Then '' If we are have finished...
-			If tmpStr <> "" Then WriteLine file, prefix+tmpStr
-			Exit
-		EndIf
-	Wend
-EndMethod
-
-Method DrawAutoMultiText:Int(t:String, x:Float, y:Float, maxCharWidth:Int=40, startLine:Int = 1, endLine:Int=99999)
-	If t.length =< maxCharWidth Then DrawText t,x,y
-	If t = "" Then Return 0
-	
-	Local words:String[]=t.split(" ")
-	Local lineheight:Int=TextHeight(" ")
-	
-	Local numberOfLines = 1
-	
-	Local dy:Float=y
-	Local tmpStr$, lastStr$
-	Local wordItr = 0
-	
-	While True
-		lastStr = tmpStr
-		tmpStr :+ words[wordItr]
+		Local numberOfLines = 1
 		
-		If tmpStr.length < maxCharWidth Then '' Check if the line has exceeded the max width
-			'' It hasn't, so add a space and go to the next word
-			wordItr:+ 1 
-			tmpStr:+" "
-		Else
-			'' It HAS exceeded the max line, so draw lastStr and DO NOT add to wordItr
-			If numberOfLines => startLine And numberOfLines < endLine
-				DrawText lastStr , x, dy 
-				dy:+lineheight
+		Local dy:Float=y
+		Local tmpStr$, lastStr$
+		Local wordItr = 0
+		
+		While True
+			lastStr = tmpStr
+			tmpStr :+ words[wordItr]
+			
+			If tmpStr.length < maxCharWidth Then '' Check if the line has exceeded the max width
+				'' It hasn't, so add a space and go to the next word
+				wordItr:+ 1 
+				tmpStr:+" "
+			Else
+				'' It HAS exceeded the max line, so draw lastStr and DO NOT add to wordItr
+				If numberOfLines => startLine And numberOfLines < endLine
+					DrawText lastStr , x, dy 
+					dy:+lineheight
+				EndIf
+				
+				tmpStr="" '' Reset tmpStr for a new line			
+				numberOfLines:+1
 			EndIf
 			
-			tmpStr="" '' Reset tmpStr for a new line			
-			numberOfLines:+1
-		EndIf
+			If wordItr => words.length Then '' If we are have finished...
+				If tmpStr <> "" And numberOfLines < endLine Then DrawText tmpStr, x, dy '' PrintConsole any outstanding words.
+				Exit
+			EndIf
+		Wend
 		
-		If wordItr => words.length Then '' If we are have finished...
-			If tmpStr <> "" And numberOfLines < endLine Then DrawText tmpStr, x, dy '' PrintConsole any outstanding words.
-			Exit
-		EndIf
-	Wend
-	
-	Return numberOfLines '' Return the number of lines drawn
-EndMethod
+		Return numberOfLines '' Return the number of lines drawn
+	EndMethod
+?
 
-Method FileGetLine$(filename$,line)
-	Local cnt, currentLine:String, file:TStream = OpenFile(filename:String, True, False)
-	If Not file Then TPrint "[ERROR] Could not open '" + filename:String + "' !" ; Return ""
-	
-	While Not Eof(file)
-		currentLine$=ReadLine$(file)
-		If Left(currentLine$,1) = "*" Then Continue
+	Method FileGetLine$(filename$,line)
+		Local cnt, currentLine:String, file:TStream = OpenFile(filename:String, True, False)
+		If Not file Then TPrint "[ERROR] Could not open '" + filename:String + "' !" ; Return ""
 		
-		cnt:+ 1
-		If cnt = line Then Exit
-	Wend
-	
-	SeekStream file, 0
-	file.Close()
-	Return currentLine
-End Method
-
-Method FileWriteLine(filename:String, line:String)
-	Local file:TStream = WriteFile(filename)
-	If Not file Then TPrint "[ERROR] Could not open '" + filename:String + "' !" ; Return False
-	file.WriteLine(line)
-	file.Close()
-	Return True
-End Method
-
-Method Paragraph(txt$,x,y,displace=0,maxLines=-1,maxChar=100)
-	Local cLen=(Len txt$),tmpLine$=txt$,i,ti,di=1,cnt
-	Local tmpChar
-	
-	While cLen > maxChar
-		tmpLine$ = Left(txt$,maxChar)
+		While Not Eof(file)
+			currentLine$=ReadLine$(file)
+			If Left(currentLine$,1) = "*" Then Continue
+			
+			cnt:+ 1
+			If cnt = line Then Exit
+		Wend
 		
-		tmpChar = maxChar
+		SeekStream file, 0
+		file.Close()
+		Return currentLine
+	End Method
+
+	Method FileWriteLine(filename:String, line:String)
+		Local file:TStream = WriteFile(filename)
+		If Not file Then TPrint "[ERROR] Could not open '" + filename:String + "' !" ; Return False
+		file.WriteLine(line)
+		file.Close()
+		Return True
+	End Method
+
+?not console
+	Method Paragraph(txt$,x,y,displace=0,maxLines=-1,maxChar=100)
+		Local cLen=(Len txt$),tmpLine$=txt$,i,ti,di=1,cnt
+		Local tmpChar
+		
+		While cLen > maxChar
+			tmpLine$ = Left(txt$,maxChar)
 			
-		If Right(tmpLine$,1) <> " " Then
-			ti=1
-			
-			While Mid(tmpLine$,((Len tmpLine$)-ti),1) <> " "
-				ti:+1
-			Wend
-			
-			tmpChar = maxChar-ti
-			tmpLine$ = Left(txt$,tmpChar)
-		EndIf
+			tmpChar = maxChar
 				
-		If Left(tmpLine$,1) = " " Then tmpLine$ = Right(tmpLine$,(Len tmpLine$)-1)
-		If Right(tmpLine$,1) = " " Then tmpLine$ = Left(tmpLine$,(Len tmpLine$)-1)
-		
-		txt$ = Right(txt$,cLen-(tmpChar-1)) 
-		
+			If Right(tmpLine$,1) <> " " Then
+				ti=1
+				
+				While Mid(tmpLine$,((Len tmpLine$)-ti),1) <> " "
+					ti:+1
+				Wend
+				
+				tmpChar = maxChar-ti
+				tmpLine$ = Left(txt$,tmpChar)
+			EndIf
+					
+			If Left(tmpLine$,1) = " " Then tmpLine$ = Right(tmpLine$,(Len tmpLine$)-1)
+			If Right(tmpLine$,1) = " " Then tmpLine$ = Left(tmpLine$,(Len tmpLine$)-1)
+			
+			txt$ = Right(txt$,cLen-(tmpChar-1)) 
+			
+			
+			If cnt => displace Then
+				If maxLines > 0 Then
+					If cnt < (displace+maxLines) Then
+						DrawText tmpLine$,x,y+(i*16)
+						i:+1
+					EndIf
+				Else
+					DrawText tmpLine$,x,y+(i*16)
+					i:+1
+				EndIf
+			EndIf
+			
+			cLen=(Len txt$)
+			cnt:+1
+		Wend
 		
 		If cnt => displace Then
 			If maxLines > 0 Then
 				If cnt < (displace+maxLines) Then
-					DrawText tmpLine$,x,y+(i*16)
-					i:+1
+					DrawText txt$,x,y+(i*16)
 				EndIf
 			Else
-				DrawText tmpLine$,x,y+(i*16)
-				i:+1
+				DrawText txt$,x,y+(i*16)
 			EndIf
 		EndIf
 		
-		cLen=(Len txt$)
-		cnt:+1
-	Wend
+		'Warning :+ "PH"+cnt
+		Return cnt
+	End Method
+?
 	
-	If cnt => displace Then
-		If maxLines > 0 Then
-			If cnt < (displace+maxLines) Then
-				DrawText txt$,x,y+(i*16)
-			EndIf
-		Else
-			DrawText txt$,x,y+(i*16)
-		EndIf
-	EndIf
-	
-	'Warning :+ "PH"+cnt
-	Return cnt
-End Method
+	Method SPrintConsoleF:String(txt:String, a:String, b:String = "", c:String = "", d:String = "", e:String = "", f:String = "", g:String = "")
+		If a$ Then txt$ = Replace(txt$,"$1",a$)
+		If b$ Then txt$ = Replace(txt$,"$2",b$)
+		If c$ Then txt$ = Replace(txt$,"$3",c$)
+		If d$ Then txt$ = Replace(txt$,"$4",d$)
+		If e$ Then txt$ = Replace(txt$,"$5",e$)
+		If f$ Then txt$ = Replace(txt$,"$6",f$)
+		If g$ Then txt$ = Replace(txt$,"$7",g$)
+		
+		Return txt$
+	End Method
 
-Method SPrintConsoleF:String(txt:String, a:String, b:String = "", c:String = "", d:String = "", e:String = "", f:String = "", g:String = "")
-	If a$ Then txt$ = Replace(txt$,"$1",a$)
-	If b$ Then txt$ = Replace(txt$,"$2",b$)
-	If c$ Then txt$ = Replace(txt$,"$3",c$)
-	If d$ Then txt$ = Replace(txt$,"$4",d$)
-	If e$ Then txt$ = Replace(txt$,"$5",e$)
-	If f$ Then txt$ = Replace(txt$,"$6",f$)
-	If g$ Then txt$ = Replace(txt$,"$7",g$)
-	
-	Return txt$
-End Method
-
-Method StripUpTo$(txt$, upto$) 
-	Local pos = Instr(txt$, upto$) + (Len upto$)
-	If Not Instr(txt$, upto$) Then Return txt$
-	Return Right(txt$,(Len txt$)-pos)
-End Method
+	Method StripUpTo$(txt$, upto$) 
+		Local pos = Instr(txt$, upto$) + (Len upto$)
+		If Not Instr(txt$, upto$) Then Return txt$
+		Return Right(txt$,(Len txt$)-pos)
+	End Method
 End Type
 '#End Region
 '''''''''''''''''''''''''''
 
 '''''''''''''''''''''''''''
 '#Region Drawing Methods
+?not console
 Type tbDraw {expose static}
 Global TK_AllowAlphaChange = True
 Global TK_AllowColorChange = True
@@ -836,6 +859,7 @@ Method GetRGBBasedOnNumber:String(clr:Int)
 	End Select
 End Method
 End Type
+?
 '#End Region
 '''''''''''''''''''''''''''
 
@@ -1153,9 +1177,11 @@ Type Vector2D {expose}
 		Return Sqr(((vec.x - x) ^ 2) + ((vec.y - y) ^ 2))
 	End Method
 	
+?not console
 	Method SetScaleTo()
 		SetScale x,y
 	End Method
+?
 	
 	Method MidPoint:Vector2D(o:Vector2D)
 		Return New Vector2D.Create((x+o.x)/2,(y+o.y)/2)
@@ -1165,6 +1191,7 @@ Type Vector2D {expose}
 		Return New Vector2D.Create((x+o.x)/divisor,(y+o.y)/divisor)
 	End Method
 	
+?not console
 	Method DrawAt(i:TImage, f% = 0)
 		DrawImage i, x, y, f
 	End Method
@@ -1176,7 +1203,7 @@ Type Vector2D {expose}
 		DrawImage(i, x, y, f)
 		SetScale fx,fy
 	End Method
-	
+?
 '	Method Distance:Double(vec:Vector2D)
 '		Local dist:Double = Sqr(((vec.x - x) ^ 2) + ((vec.y - y) ^ 2))
 '		PrintConsole "Self: " + Self.debug_toString() + " Other: " + vec.debug_toString() + " Distance Calc: " + dist
@@ -1241,7 +1268,8 @@ Type Vector2D {expose}
 		
 		Return tVec
 	End Method
-	
+
+?not console
 	Rem
 	bbdoc:Draws an Image[i] at the x And y coords.[v] with frame number[f]
 	End Rem 
@@ -1255,7 +1283,7 @@ Type Vector2D {expose}
 	Method DrawImageAt_WithScale(i:TImage, v:Vector2D, s:Vector2D, f:Int = 0)
 		v.DrawAt_WithScale i, s, f
 	End Method
-	
+?	
 	'#End Region
 End Type
 '''''''''''''''''''''''''''
