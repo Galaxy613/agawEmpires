@@ -8,6 +8,11 @@ Rem
 	
 '---------------------------------------------------------------------------------------------------
 End Rem
+Framework BRL.standardio
+Import BRL.stream
+import BRL.Retro
+Import BRL.linkedlist
+Import BRL.FileSystem
 
 Type INI_File
 	Global debug = 0
@@ -51,7 +56,11 @@ Type INI_File
 				Return iItem.Data
 			EndIf
 		Next
+?console
+		Print "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"		
+?not console
 		Notify "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"
+?
 		Return ""
 	End Method
 	
@@ -68,7 +77,11 @@ Type INI_File
 			EndIf
 		Next
 		
+?console
+		Print "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"		
+?not console
 		Notify "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"
+?
 		Return 0.0
 	End Method
 	
@@ -85,7 +98,11 @@ Type INI_File
 			EndIf
 		Next
 		
+?console
+		Print "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"		
+?not console
 		Notify "While using '"+Self.Filename+"' | Could not find '" + Name + "' in '"+group+"'!"
+?
 		Return 0
 	End Method
 	'#End Region

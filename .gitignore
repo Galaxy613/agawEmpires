@@ -1,5 +1,4 @@
 .bmx/
-.vscode/
 *.exe
 game*.txt
 *settings.ini

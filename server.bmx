@@ -1,8 +1,8 @@
-Framework brl.standardio
-Import brl.stream
-Import brl.socket
-Import brl.linkedlist
-Import brl.FileSystem
+Framework BRL.standardio
+Import BRL.stream
+Import BRL.socket
+Import BRL.linkedlist
+Import BRL.FileSystem
 
 Import "imports/sfTCP.bmx"
 Import "imports/INI_Interface.bmx"

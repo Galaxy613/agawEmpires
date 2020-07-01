@@ -12,7 +12,7 @@ Rem
 
 endrem
 
-Strict
+SuperStrict ' Necessary for overloading void methods...
 
 ?console
 Framework BRL.standardio
@@ -26,6 +26,7 @@ Import BRL.Socket
 Import BRL.SocketStream
 Import BRL.Retro
 Import BRL.EventQueue
+Import BRL.Map
 Import "Toolbox.bmx"
 Include "networkHelpers.bmx"
 Include "GameObjects.bmx"
