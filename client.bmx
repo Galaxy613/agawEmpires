@@ -1,7 +1,5 @@
 Strict
 
-'Framework BRL.GLMax2D
-
 Import "imports/Toolbox.bmx"
 Import "imports/sfTCP.bmx"
 Import "imports/clientChatDisplay.bmx"
