@@ -1,8 +1,11 @@
+
+?console
 Framework BRL.standardio
 Import BRL.stream
 Import BRL.socket
 Import BRL.linkedlist
 Import BRL.FileSystem
+?
 
 Import "imports/sfTCP.bmx"
 Import "imports/INI_Interface.bmx"
@@ -27,10 +30,10 @@ Global endInputThreadMutex:TMutex = CreateMutex()
 Local thread:TThread = CreateThread(InputThread, "")
 Global endInputThreadBool = False
 Try
-?' Not Threaded
+?not console
 AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Server"
 Graphics 480, 240
-'?
+?
 server = New TServer.Create(TSocket.CreateTCP(), DEFAULTPORT)
 If Not server.Start()
 	Print(CurrentDate() + " " + CurrentTime() + " [START] Failed to start server")
@@ -53,12 +56,16 @@ If curGame Then If curGame.players.Count() > 2 Then
 End If
 
 Local serverUpdateTime:Int = MilliSecs(), msmax:Int, msmid:Float, lastServerStartTry%=MilliSecs()
+?not console
 While (Not AppTerminate()) And (Not endInputThreadBool)
+?console
+While (Not endInputThreadBool)
+?
 ?Threaded
 	networkMutex.Lock()
-?' Not Threaded
+?not console
 	serverUpdateTime = MilliSecs()
-'?
+?
 	If server Then
 		If server.m_socket Then server.Update()
 	ElseIf MilliSecs()- lastServerStartTry > 5000
@@ -74,7 +81,7 @@ While (Not AppTerminate()) And (Not endInputThreadBool)
 	
 ?Threaded
 	networkMutex.Unlock()
-? 'Not Threaded
+?not console
 	serverUpdateTime = MilliSecs() - serverUpdateTime
 	If msmax < serverUpdateTime Then msmax = serverUpdateTime
 	If serverUpdateTime > 0 Then msmid = (msmid + serverUpdateTime) / 2.0
@@ -113,24 +120,7 @@ While (Not AppTerminate()) And (Not endInputThreadBool)
 		DrawLine xxtime, 32, xxtime, GraphicsHeight()
 	EndIf
 	Flip;Cls
-	
-'	If KeyHit(KEY_SPACE) Then If playGame = False Then
-'		playGame = True
-'			TPrint "[INFO] Game Updates Resumed"
-'	Else
-'		playGame = False
-'			TPrint "[INFO] Game Updates Stopped"
-'	EndIf
-'?Threaded
-'	networkMutex.Lock()
-'?
-'	If server Then 
-'		server.gamePaused = False
-'		If playGame = False Then server.gamePaused = True
-'	EndIf
-'?Threaded
-'	networkMutex.Unlock()
-'?
+?
 	
 	Delay currentLag ' Take some time for other things.
 Wend

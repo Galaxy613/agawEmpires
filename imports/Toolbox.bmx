@@ -34,7 +34,7 @@ Global dTime# = 0.0, tTime% = MilliSecs()
 'Global currentScreen$ = "main"
 
 Function PrintConsole(str:String) '' Replacing the LuaConsole's one.
-	Print str
+	Print(str)
 End Function
 
 ?not console

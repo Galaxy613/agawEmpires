@@ -8,11 +8,13 @@ Rem
 	
 '---------------------------------------------------------------------------------------------------
 End Rem
+?console
 Framework BRL.standardio
 Import BRL.stream
 import BRL.Retro
 Import BRL.linkedlist
 Import BRL.FileSystem
+?
 
 Type INI_File
 	Global debug = 0
@@ -167,14 +169,14 @@ Type INI_File
 		Local TempStr1:String, TempStr2:String
 		ListAddLast Groups, String("")
 		
-		'If _debug Then Print "INI_FILE: Setup Start"
+		If debug Then Print "INI_FILE: Setup Start"
 		
 		While Not Eof(File)
 			CurrentLine = ReadLine(file)						'Read Next Item
 			
 			If Left(CurrentLine, 1) = "[" And Instr(CurrentLine, "]") Then 	' Check for new group
 				CurrentGroup = Lower(Mid(CurrentLine, 2, (Len CurrentLine) - 2))
-				Print "NEW GROUP: " + CurrentGroup
+				If debug Then Print "NEW GROUP: " + CurrentGroup
 				ListAddLast Groups, CurrentGroup
 			ElseIf Left(CurrentLine, 1) = ";" Then							' Check for comment
 				CurrentLine = ReadLine(file)
@@ -200,7 +202,7 @@ Type INI_File
 			'If Replace(CurrentLine," ","") = "" Then CurrenGroup = ""	' Should clear the current
 			'					group when a space is encountered, I don't know if I want this yet.	
 		Wend
-		'If _debug Then Print "INI_FILE: Setup End"
+		If debug Then Print "INI_FILE: Setup End"
 		Return Self
 	End Method
 	
@@ -234,7 +236,7 @@ Type INI_File
 	'--------------------------------------------------------
 	'#Region Functions
 	Function Load:INI_File(filename:String)
-		'If _debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
+		'If debug Then Print "INI_FILE: Ini_File.Load ( '" + filename + "' )"
 		If filename =< 0 Then RuntimeError "ERROR :: INI_File.Load :: Was not given a proper filename!!"
 		Local file:TStream = OpenFile(filename, 1, 0)
 		If Not file Then RuntimeError "ERROR :: INI_File.Load :: Can not open '" + filename + "'!"

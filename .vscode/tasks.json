@@ -4,9 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build console-mode sfTCP.bmx",
+            "label": "Default Build",
             "type": "bmx",
-            "source": "imports/sfTCP.bmx",
+            "source": "",
             "output": "",
             "make": "makeapp",
             "app": "console",
@@ -17,9 +17,6 @@
             "quick": false,
             "execute": false,
             "verbose": false,
-            "conditionals": [
-                "console"
-            ],
             "problemMatcher": [
                 "$blitzmax"
             ],

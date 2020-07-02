@@ -1,4 +1,5 @@
 Import maxgui.Drivers
+Import BRL.EventQueue
 'Import maxgui.proxyGadgets
 ?Win32
 Import maxgui.win32maxguiex
