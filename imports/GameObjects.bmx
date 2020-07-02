@@ -355,7 +355,9 @@ Type TGame
 		homeSystem.ships = 50 + (CurrentTurn / 20)
 		homeSystem.quality = 10
 		homeSystem.isBuilding = True
+?not console
 		ply.rgb = tb.Draw.GetRGBBasedOnNumber(players.Count())
+?
 		
 		If preferedTopic = -1 Then preferedTopic = Rand(0, ply.researchTopics.Length - 2)
 		ply.preferedResearchAspect = preferedTopic
@@ -1012,6 +1014,7 @@ Type TSystem Extends TNetObject
 		Return (y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan
 	End Method
 	
+?not console
 	Method IsMouseOver:Int()
 		Return tb.PointIn.MouseInRect((x * MAP_SCALE) - (MAP_SCALE) + (scnx / 2) - currentXPan,  ..
 			(y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan,  ..
@@ -1093,6 +1096,7 @@ Type TSystem Extends TNetObject
 		SetAlpha 1.0
 		SetColor 255, 255, 255
 	End Method
+?
 End Type
 
 Type TFleet Extends TNetObject
@@ -1199,6 +1203,7 @@ Type TFleet Extends TNetObject
 		Return (y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan
 	End Method
 	
+?not console
 	Method IsMouseOver:Int()
 		Return tb.PointIn.MouseInRect((x * MAP_SCALE) - (MAP_SCALE) + (scnx / 2) - currentXPan,  ..
 			(y * MAP_SCALE) - (MAP_SCALE) + (scny / 2) - currentYPan,  ..
@@ -1267,4 +1272,5 @@ Type TFleet Extends TNetObject
 			SetAlpha 1.0
 			SetColor 255, 255, 255
 		End Method
+	?
 	End Type

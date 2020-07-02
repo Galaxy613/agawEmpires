@@ -12,15 +12,21 @@ Rem
 
 endrem
 
-SuperStrict
+SuperStrict ' Necessary for overloading void methods...
 
-Import brl.LinkedList
-Import brl.System
-Import brl.Socket
-Import brl.SocketStream
-Import brl.Retro
-Import brl.EventQueue
-Import brl.PNGLoader
+?console
+Framework BRL.standardio
+?not console
+Import BRL.PNGLoader
+?
+Import BRL.LinkedList
+Import BRL.System
+Import BRL.Stream
+Import BRL.Socket
+Import BRL.SocketStream
+Import BRL.Retro
+Import BRL.EventQueue
+Import BRL.Map
 Import "Toolbox.bmx"
 Include "networkHelpers.bmx"
 Include "GameObjects.bmx"

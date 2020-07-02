@@ -252,6 +252,8 @@ End Function
 Type Account
 	Global accountList:TList = CreateList()
 	
+	' TODO Add constants or a enum for the `stat` field.
+	
 	Field name:String, pass:String, stat:Int, loggedIn:Int
 	Field data:TMap = CreateMap()
 	
@@ -338,6 +340,7 @@ Function CountMap:Int(map:TMap)
 	Next
 	Return Count
 End Function
+
 Function Combine:String(Text:String[], delimiter:String = "`")
 	Local result:String
 	For Local I% = 0 Until Text.Length

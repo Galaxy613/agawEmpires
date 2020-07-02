@@ -1,0 +1,123 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Default Build",
+            "type": "bmx",
+            "source": "",
+            "output": "",
+            "make": "makeapp",
+            "app": "console",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build console-mode INI_Interface.bmx",
+            "type": "bmx",
+            "source": "imports/INI_Interface.bmx",
+            "output": "",
+            "make": "makeapp",
+            "app": "console",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "conditionals": [
+                "console"
+            ],
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build"
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build console-mode server.bmx",
+            "type": "bmx",
+            "source": "server.bmx",
+            "output": "",
+            "make": "makeapp",
+            "app": "console",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "conditionals": [
+                "console"
+            ],
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build gui-mode server.bmx",
+            "type": "bmx",
+            "source": "server.bmx",
+            "output": "",
+            "make": "makeapp",
+            "app": "gui",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build cilent.bmx",
+            "type": "bmx",
+            "source": "client.bmx",
+            "output": "",
+            "make": "makeapp",
+            "app": "gui",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
