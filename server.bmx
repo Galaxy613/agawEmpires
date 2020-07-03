@@ -10,6 +10,9 @@ Import BRL.FileSystem
 Import "imports/sfTCP.bmx"
 Import "imports/INI_Interface.bmx"
 
+Incbin "version.txt"
+Global version:String = LoadText("incbin::version.txt")
+
 SeedRnd MilliSecs()
 Global currentLag = 0
 
@@ -31,9 +34,11 @@ Local thread:TThread = CreateThread(InputThread, "")
 Global endInputThreadBool = False
 Try
 ?not console
-AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Server"
+AppTitle = "A Galaxy At War: Empires ::: " + version + " ::: Server"
 Graphics 480, 240
 ?
+TPrint "A Galaxy At War: Empires ::: " + version + " ::: Server"
+
 server = New TServer.Create(TSocket.CreateTCP(), DEFAULTPORT)
 If Not server.Start()
 	Print(CurrentDate() + " " + CurrentTime() + " [START] Failed to start server")
@@ -359,7 +364,7 @@ Function InputThread:Object(data:Object)
 			Case "newacc"
 				networkMutex.Lock()
 				If command.Length = 3 Then
-					command[2] = MD5(command[2])
+					command[2] = preparePassword(command[2])
 					command[1] = Account.cleanName(command[1])
 					If Account.Find(command[1]) <> Null Then
 						TPrint "[ERROR] Username '" + command[1] + "' already exists!"
@@ -376,7 +381,7 @@ Function InputThread:Object(data:Object)
 			Case "changepass"
 				networkMutex.Lock()
 				If command.Length = 3 Then
-					command[2] = MD5(command[2])
+					command[2] = preparePassword(command[2])
 					command[1] = Account.cleanName(command[1])
 					If Account.Find(command[1]) <> Null Then
 						Account.Find(command[1]).pass = command[2]

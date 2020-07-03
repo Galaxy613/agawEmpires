@@ -323,13 +323,13 @@ Type TServer
 				Continue
 			End If
 			If MilliSecs() - tclient.lastSpamCheck > 1000 Then If tclient.messagesRecivedRecently > 100 Then
-					Kick tclient, "Spamming Packets"
-					tclient.Close()
-					Continue
-				Else
-					tclient.messagesRecivedRecently:-5
-					If tclient.messagesRecivedRecently < 0 Then tclient.messagesRecivedRecently = 0
-				EndIf
+				Kick tclient, "Spamming Packets"
+				tclient.Close()
+				Continue
+			Else
+				tclient.messagesRecivedRecently:-5
+				If tclient.messagesRecivedRecently < 0 Then tclient.messagesRecivedRecently = 0
+			EndIf
 			If tclient.acc And tclient.acc.stat = -1 Then
 				Kick tclient
 				Continue
@@ -387,13 +387,13 @@ Type TServer
 				
 			'''''
 			If currentTNetObject Then Select TNetObject(currentTNetObject).netTypeID
-					Case TNetObject.ID_SYSTEM
-						tclient.SyncSystems(TSystem(currentTNetObject))
-					Case TNetObject.ID_FLEET
-						tclient.SyncFleets(TFleet(currentTNetObject))
-					Case TNetObject.ID_PLAYER
-						tclient.SyncPlayers(TPlayer(currentTNetObject))
-				End Select
+				Case TNetObject.ID_SYSTEM
+					tclient.SyncSystems(TSystem(currentTNetObject))
+				Case TNetObject.ID_FLEET
+					tclient.SyncFleets(TFleet(currentTNetObject))
+				Case TNetObject.ID_PLAYER
+					tclient.SyncPlayers(TPlayer(currentTNetObject))
+			End Select
 		Else
 			tclient.recievedMessages.Clear()
 		EndIf
@@ -561,6 +561,7 @@ Type TServerClient Extends TBaseClient
 		Local wname:String = Account.cleanName(packetArray[0])'ReadString(ReadInt()))
 		Local wpass:String = packetArray[1]
 		Local wacc:Account = Account.Find(wname)
+		wpass = wacc.saltify(wpass)
 		If wacc <> Null
 			If wacc.stat = -1 Then SendText("[Server] You can't log into a banned account!", 1) ;Return
 			If wacc.loggedIn Then SendText("[Server] Someone else is already logged into that account!", 1) ;Return
@@ -997,7 +998,7 @@ Type TMasterClient Extends TBaseClient
 	End Method
 	
 	Method SendLogin(name:String, pass:String)
-		SendPacket(Packet.ID_LOGIN, name + "`" + MD5(pass))
+		SendPacket(Packet.ID_LOGIN, name + "`" + preparePassword(pass))
 	End Method
 	
 	Method SyncTGame()

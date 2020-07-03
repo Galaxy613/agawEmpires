@@ -6,12 +6,15 @@ Import "imports/clientChatDisplay.bmx"
 Import "imports/RequestText.bmx"
 Import "imports/INI_Interface.bmx"
 
+Incbin "version.txt"
 Incbin "OCRAEXT.TTF"
 Incbin "art/BottomLeftPanel.png"
 Incbin "art/menubutton.png"
 Incbin "art/menubutton_down.png"
 Incbin "art/topBar.png"
 Incbin "art/windowbackground.png"
+
+Global version:String = LoadText("incbin::version.txt")
 
 Global mainChat:sChatHandler = New sChatHandler
 Global attacheUpdates:sChatHandler = New sChatHandler
@@ -51,7 +54,7 @@ Else
 	settingsIni.set("hertz", screenHertz, "graphics")
 EndIf
 
-AppTitle = "A Galaxy At War: Empires ::: Alpha Test 2 ::: Client"
+AppTitle = "A Galaxy At War: Empires ::: " + version + " ::: Client"
 
 Graphics(scnx, scny, screenMode)
 SetBlend ALPHABLEND
@@ -299,7 +302,7 @@ Function DoLoginScreen()
 	SetAlpha 0.9
 	SetImageFont lrgFont
 	tb.Draw.CenteredText("A Galaxy At War: Empires", scnx / 2, scny / 2 - 128)
-	tb.Draw.CenteredText("Alpha Test", scnx / 2, scny / 2 - 128 + 32)
+	tb.Draw.CenteredText(version, scnx / 2, scny / 2 - 128 + 32)
 	
 	'DrawRect tmpX, tmpY, 320, 128
 	DrawImageRect(menuBars[3], tmpX - 4, tmpY - 4, 480 + 8, 128 + 8)
@@ -339,7 +342,7 @@ Function DoSyncScreen()
 	SetAlpha 0.9
 	SetImageFont lrgFont
 	tb.Draw.CenteredText("A Galaxy At War: Empires", scnx / 2, scny / 2 - 128)
-	tb.Draw.CenteredText("Alpha Test", scnx / 2, scny / 2 - 128 + 32)
+	tb.Draw.CenteredText(version, scnx / 2, scny / 2 - 128 + 32)
 	
 	SetColor 255, 255, 255
 	SetAlpha 1.0

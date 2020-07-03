@@ -1,4 +1,8 @@
 
+Function preparePassword:String(plainTextPassword:String)
+	return MD5(plainTextPassword+"agawE")
+End Function
+
 Function MD5:String(in:String)
 	Local h0:Long = $67452301
 	Local h1:Long = $EFCDAB89
@@ -255,7 +259,12 @@ Type Account
 	' TODO Add constants or a enum for the `stat` field.
 	
 	Field name:String, pass:String, stat:Int, loggedIn:Int
+	Field salt:String
 	Field data:TMap = CreateMap()
+	
+	Method saltify:String(password:String)
+		Return MD5(password+salt)
+	End Method
 	
 	Function cleanName:String(nname:String)
 		Return nname.Replace("+", "").Replace("-", "").Replace(":", "").Replace("`", ""). ..
@@ -275,10 +284,11 @@ Type Account
 		Local acc:Account = New Account
 		accountList.AddLast(acc)
 		acc.name = nname
-		acc.pass = ppass
+		acc.salt = MD5(MilliSecs())
+		acc.pass = acc.saltify(ppass)
 	End Function
 	
-	Function LoadFile(filename:String = "users.txt")
+	Function LoadFile(filename:String = "accounts.dat")
 		Local Handle:TStream = ReadFile(filename)
 		accountList.Clear()
 		If Handle <> Null
@@ -288,6 +298,7 @@ Type Account
 				If Find(acc.name) Then
 					acc = Find(acc.name)
 				EndIf
+				acc.salt = Handle.ReadString(Handle.ReadInt())
 				acc.pass = Handle.ReadString(Handle.ReadInt())
 				acc.stat = Handle.ReadInt() ''' ColorString?
 				Local Count:Int = Handle.ReadInt() ''' NumOfVars
@@ -309,12 +320,14 @@ Type Account
 		Print "[INFO] Loaded #" + accountList.Count() + " accounts!"
 	End Function
 	
-	Function SaveToFile(filename:String = "users.txt")
+	Function SaveToFile(filename:String = "accounts.dat")
 		Local Handle:TStream = WriteFile(filename)
 		If Handle <> Null
 			For Local acc:Account = EachIn accountList
 				Handle.WriteInt(acc.name.Length)
 				Handle.WriteString(acc.name)
+				Handle.WriteInt(acc.salt.Length)
+				Handle.WriteString(acc.salt)
 				Handle.WriteInt(acc.pass.Length)
 				Handle.WriteString(acc.pass)
 				Handle.WriteInt(acc.stat) ''' Status Banned/Active/Mod
