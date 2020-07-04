@@ -24,7 +24,7 @@
             }
         },
         {
-            "label": "Build console-mode server.bmx",
+            "label": "Build headless server",
             "type": "bmx",
             "source": "server.bmx",
             "output": "",
@@ -49,12 +49,12 @@
             }
         },
         {
-            "label": "Build gui-mode server.bmx",
+            "label": "Build Server",
             "type": "bmx",
             "source": "server.bmx",
             "output": "",
             "make": "makeapp",
-            "app": "gui",
+            "app": "console",
             "arch": "auto",
             "platform": "auto",
             "threaded": true,
@@ -71,12 +71,12 @@
             }
         },
         {
-            "label": "Build gui-mode cilent.bmx",
+            "label": "Build Cilent",
             "type": "bmx",
             "source": "client.bmx",
             "output": "",
             "make": "makeapp",
-            "app": "gui",
+            "app": "console",
             "arch": "auto",
             "platform": "auto",
             "threaded": true,
@@ -91,6 +91,10 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+          "label": "Build GUI All",
+          "dependsOn": ["Build Cilent", "Build Server"]
         }
     ]
 }

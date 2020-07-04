@@ -926,19 +926,21 @@ Type TSystem Extends TNetObject
 	End Function
 	
 	Method Packetize:String(levelOfKnowledge:Int = 0)
-	'	Select levelOfKnowledge
-	'		Case 0
-	'			Return netID + "`" + x + "`" + y + "``-1"
-	'			
-	'		Case 1
-	'			Return netID + "`" + x + "`" + y + "`" + owner + "`-1`-1"
-	'			
-	'		Case 2
-	'			Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships
-	'			
-	'		Default
+		Select levelOfKnowledge
+			Case 0
+				Local xx:int = Int(Rnd(-10,10) + x)
+				Local yy:int = Int(Rnd(-10,10) + y)
+				Return netID + "`" + xx + "`" + yy + "``-1"
+				
+			Case 1
+				Return netID + "`" + x + "`" + y + "`" + owner + "`-1`-1"
+			
+			Case 2
+				Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships
+				
+			Default
 				Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships + "`" + lastBuild + "`" + isBuilding
-	'	End Select
+		End Select
 	End Method
 	
 	Method UnPack:Int(packet:String[])
@@ -1028,7 +1030,11 @@ Type TSystem Extends TNetObject
 		
 		If client And tmpPlayer Then If client.ply Then If tmpPlayer.netID = client.ply.netID Then isPlayers = True
 		
-		If tmpPlayer Then tb.Draw.SetRGB(tmpPlayer.rgb)
+		If tmpPlayer Then
+			tb.Draw.SetRGB(tmpPlayer.rgb)
+		ElseIf ships <= 0 Then
+			SetAlpha( 0.5 )
+		EndIf
 		
 		'' Draw 'Star'
 		If tmpPlayer Then If tmpPlayer.homeSystemID = netID Then

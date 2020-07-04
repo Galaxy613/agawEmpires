@@ -588,7 +588,7 @@ Type TServerClient Extends TBaseClient
 		''' fromnetID, tonetID, ships
 		If packetArray.Length <> 3 Then SendText("[Server] Incomplete Fleet Dispatch Request Packet, Try Again", 1) ; Return False
 		Local fromSys:TSystem = curGame.FindSystemID(Int(packetArray[0]))
-		If fromSys.owner <> ply.netID Then
+		If fromSys.owner <> ply.netID And acc.stat < 1337 Then
 			TPrint "[WARNING!GAME] Recieved a fleet send request from " + name + " to send ships from someone else's system."
 			SendText("[Server] You can not send fleet requests to other people's system!", 1)
 			Return False
@@ -621,6 +621,11 @@ Type TServerClient Extends TBaseClient
 		CurrentTSystem:+1
 		If Not tmp Then Return False
 		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(-1))
+			Return True
+		EndIf
+		
 		If ply Then
 			If tmp.owner = ply.netID Then
 				SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(-1))
@@ -646,6 +651,12 @@ Type TServerClient Extends TBaseClient
 		'If CurrentTFleet = 0 Then TPrint "[Info] Starting to Sync Fleets for " + name
 		CurrentTFleet:+1
 		If Not tmp Then Return False
+		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(-1))
+			Return True
+		EndIf
+		
 		If ply Then
 			'' 0Galaxy; 1LongRng; 2Nearby; 3Own
 			If tmp.owner = ply.netID Then
@@ -673,6 +684,11 @@ Type TServerClient Extends TBaseClient
 		'if CurrentTPlayer = 0 Then TPrint "[Info] Starting to Sync Players for " + name
 		CurrentTPlayer:+1
 		If Not tply Then Return False
+		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_PLAYER + "`" + tply.Packetize(5))
+			Return True
+		EndIf
 		
 		If name = tply.username Then
 			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_PLAYER + "`" + tply.Packetize(5))
@@ -775,7 +791,7 @@ Type TServerClient Extends TBaseClient
 				
 			Case Packet.ID_CMDSENDFLEET
 				If auth Then
-					If ply Then
+					If ply Or acc.stat >= 1337 Then
 						DealWithFleetRequest(packetArray)
 					Else
 						TPrint "[WARNING!GAME] Recieved a fleet send request from " + name + ", but isn't authorized."
