@@ -121,7 +121,7 @@ Function DoMain()
 		End If
 	
 		Select currentScreen
-			Case 0
+			Case 0 '' Login Screen
 				DoLoginScreen
 				If client Then
 					If client.auth Then
@@ -142,7 +142,7 @@ Function DoMain()
 					EndIf
 				EndIf
 		
-			Case 1
+			Case 1 '' Game Screen
 				DrawGameScreen()
 				UpdateGameScreen()
 				If Not client Then
@@ -158,13 +158,10 @@ Function DoMain()
 						selectedShips = 0
 						selectedSystem = Null
 						selectedFleet = Null
-						'curGame = New TGame
-					'	curGame.fleets = CreateList()
-					'	curGame.systems = CreateList()
 					EndIf
 				EndIf
 		
-			Case 2
+			Case 2 '' Sync Screen
 				DoSyncScreen()
 				If Not client Then
 					currentScreen = 0
@@ -194,7 +191,6 @@ Function DoMain()
 				DrawText "Last Sync:" + Int((MilliSecs() - client.lastSync) / 1000) + "s", scnx - 128, 32
 			End If
 		EndIf
-		'	DrawText("MSZ: " + MouseZ() + " MSZS:" + MouseZSpeed(), scnx / 2, 4 + 16)
 	
 		Flip;Cls
 	Wend

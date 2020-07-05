@@ -191,35 +191,6 @@ Type TerritoryMesh
 		If lastMapScale <> MAP_SCALE Then UpdateAdjustedMesh()
 		tb.Draw.SetRGB(rgb)
 		SetAlpha 0.2
-'		If GetLineWidth() > 1 Then
-'			Local n = 0
-'			Local ox:Float = -1
-'			Local oy:Float = -1
-'			Local fox:Float = -1
-'			Local foy:Float = -1
-'			Local FirstPoint:Int = True
-'			For Local P:Point = EachIn hull
-'				If FirstPoint Then
-'					fox = P.x
-'					foy = P.y
-'					FirstPoint = False
-'				Else
-'					DrawLine ox * MAP_SCALE, oy * MAP_SCALE, P.x * MAP_SCALE, P.y * MAP_SCALE
-'				EndIf
-'				ox = P.x
-'				oy = P.y
-'				n:+1
-'	'			DrawText n, (ox * MAP_SCALE) - 20, oy * MAP_SCALE
-'			Next
-'			DrawLine ox * MAP_SCALE, oy * MAP_SCALE, fox * MAP_SCALE, foy * MAP_SCALE
-'	'		DrawText "Vertexes " + (adjustedMesh.Length / 2) + " Points " + hull.Count(), ox * MAP_SCALE, oy * MAP_SCALE
-'		'	DrawText "fox " + mesh.Length, fox * MAP_SCALE, foy * MAP_SCALE
-'		End If
-'		SetAlpha 0.1
-'		DrawPoly(adjustedMesh)
-	'	For Local n:Int = 0 Until mesh.Length / 2
-	'		DrawText n, (mesh[(n * 2)] * MAP_SCALE) - 20, mesh[(n * 2) + 1] * MAP_SCALE
-	'	Next
 		If MAP_SCALE < 3
 			SetAlpha 0.6
 			SetImageFont medFont
