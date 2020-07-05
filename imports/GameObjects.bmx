@@ -410,44 +410,53 @@ Type TGame
 		Next
 	End Method
 	
-	Method CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0)
+	Method CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0, angleOffset:Int = 0)
 		Local numOfSystems:Int = 13, angleCurve:Float = 13.5, spread:Float = 3.0, startDistance:Int = 4
 		Select tType
-			Case 1
+			Case 1 '' 
 				numOfSystems = 13; angleCurve = 13.0; spread = 3.0; startDistance = 4
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 35; angleCurve = 10.0; spread = 1.5; startDistance = 20
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 72; angleCurve = 5.0; spread = 0.15; startDistance = 70
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 			Case 2
 				numOfSystems = 10; angleCurve = 20.0; spread = 2; startDistance = 2
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				spread = 3; startDistance = 4
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				Default
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				
+			Case 3
+				numOfSystems = 30; angleCurve = 20.0; spread = 2; startDistance = 2
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				spread = 3; startDistance = 4
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+			
+			Default
 				numOfSystems = 8; angleCurve = 15.0; spread = 3.0; startDistance = 7
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 11; angleCurve = 15.0; spread = 3.0; startDistance = 7
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm((-90) + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + (-90) + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 		End Select
 	End Method
 	

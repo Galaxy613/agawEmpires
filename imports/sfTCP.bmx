@@ -402,7 +402,8 @@ Type TServer
 			
 		'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 		''' SYNCING!
-		curGame.ddebugStr = "Sector 3" ; If tclient.ply Then
+		curGame.ddebugStr = "Sector 3"
+		If tclient.ply Then
 			If tclient.ply.messages.Count() > 0 Then
 				tclient.SendPacket(Packet.ID_MESSAGEATTACHE, curGame.GetYear() + " " + String(tclient.ply.messages.RemoveFirst()))
 			EndIf
@@ -634,7 +635,7 @@ Type TServerClient Extends TBaseClient
 				Local tmpDistOther:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
 				If tmpDistOther < tmpDist Then tmpDist = tmpDistOther
 				
-				If ply.researchTopics[TPlayer.RES_RADARRANGE] / 4 > tmpDist Then
+				If ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then ' Note: Range was divided by 4... IMHO that's way to short.
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(2))
 				Else
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(1))
@@ -665,10 +666,10 @@ Type TServerClient Extends TBaseClient
 				Local tmpDist:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
 				Local tmpDistOther:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
 				If tmpDistOther < tmpDist Then tmpDist = tmpDistOther
-				If ply.researchTopics[TPlayer.RES_RADARRANGE] / 2 > tmpDist Then
+				If ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then
 					'		Print name + " [netID" + tmp.netID + "] ply.radarRange / 2 > tmpDist = " + (ply.radarRange / 2) + " > " + tmpDist
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(2)) '' Nearby!
-				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] * 1.5 > tmpDist Then
 					'		Print name + " [netID" + tmp.netID + "] ply.radarRange > tmpDist = " + (ply.radarRange) + " > " + tmpDist
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(1)) '' Long Range Sensors
 				End If

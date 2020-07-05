@@ -55,6 +55,13 @@ Else
 	TPrint "[START] Successfully loaded map for game ID: " + curGame.gID
 EndIf
 
+if settingsIni.ItemExists("tick_time_ms", "game") Then
+	GAME_TICK_TIME = settingsIni.GetInteger("tick_time_ms", "game")
+Else
+	GAME_TICK_TIME = 2 * 1000
+	settingsIni.set("tick_time_ms", GAME_TICK_TIME, "game")
+EndIf
+
 server.gamePaused = True
 If curGame Then If curGame.players.Count() > 2 Then
 	server.gamePaused = False
@@ -91,6 +98,7 @@ While (Not endInputThreadBool)
 	If msmax < serverUpdateTime Then msmax = serverUpdateTime
 	If serverUpdateTime > 0 Then msmid = (msmid + serverUpdateTime) / 2.0
 	DrawText "UT: " + serverUpdateTime + "ms   H:" + msmax + " M:" + msmid, 0, 0
+	DrawText "GTT: " + GAME_TICK_TIME + "ms", 0, 32
 	If server Then
 		Local printTime:Int = False
 		If serverUpdateTime > 1000 Then TPrint "[WARNING] Unusual amount of time required for update! " + serverUpdateTime ; printTime = True
@@ -101,12 +109,12 @@ While (Not endInputThreadBool)
 		Local scCount:Int = 0
 		For Local tc:TServerClient = EachIn server.m_clients
 			Local tcPrint:String = tc.name
-			DrawText tc.name, 24 + (scCount * 72), 16 * (2)
+			DrawText tc.name, 24 + (scCount * 72), 16 * (3)
 			For Local ii:Int = 0 Until server.hiccupChecks.Length Step 2
 				If tc.hiccupChecks[ii] > tc.hiccupChecks[ii + 1] Then tc.hiccupChecks[ii + 1] = tc.hiccupChecks[ii] 'scCount
-				DrawText ii + ":", 0, 16 * (3 + (ii))
-				DrawText tc.hiccupChecks[ii], 24 + (scCount * 72), 16 * (3 + (ii))
-				DrawText tc.hiccupChecks[ii + 1], 24 + (scCount * 72), 16 * (3 + (ii + 1))
+				DrawText ii + ":", (scCount * 72), 16 * (4 + (ii))
+				DrawText tc.hiccupChecks[ii], 24 + (scCount * 72), 16 * (4 + (ii))
+				DrawText tc.hiccupChecks[ii + 1], 24 + (scCount * 72), 16 * (4 + (ii + 1))
 				tcPrint:+" ,"+ii + "=" + tc.hiccupChecks[ii + 1]
 			Next
 			If printTime Then Print tcPrint
@@ -174,7 +182,13 @@ Function InputThread:Object(data:Object)
 						TPrint "Description: Exits the server safely."
 					Case "setlag"
 						TPrint "setLag lagMs"
-						TPrint "Description: Set the milliseconds between server ticks."
+						TPrint "Description: Set the milliseconds between server ticks. The lower the amount, the faster the server checks of client updates and uses more of the system's CPU cycles."
+					Case "getgametick"
+						TPrint "getGameTick gameTickMs"
+						TPrint "Description: Get the current milliseconds between game update ticks. The lower the amount, the faster the game is played."
+					Case "setgametick"
+						TPrint "setGameTick gameTickMs"
+						TPrint "Description: Set the milliseconds between game update ticks. The lower the amount, the faster the game is played."
 					Case "setport"
 						TPrint "setPort port"
 						TPrint "Description: Set the server's port. Will NOT automatically restart the server."
@@ -191,15 +205,18 @@ Function InputThread:Object(data:Object)
 						TPrint "saveGame [gameId]"
 						TPrint "Description: Saves the current game ID or if given a different game ID, sets the game ID and then saves."
 					Case "createstarfield"
-						TPrint "createStarfield numOfStars:Int, maxDist:Float, [minDist:Float = 5, [x = 0, y = 0]]"
+						TPrint "createStarfield numOfStars:Int, maxDist:Float, [minDist:Float = 5, [x:int = 0, y:int = 0]]"
 						TPrint "Description: Creates a blob of stars around x and y."
 					Case "randomstarfield"
 						TPrint "randomStarfield [maxPostitionOffset, [minNumberOfStars, maxNumberOfStars, minMaxDist, maxMaxDist]]"
 						TPrint "Description: Creates a random blob of stars. Defaults to maxPostitionOffset=100, minNumberOfStars=20, maxNumberOfStars=30, minMaxDist=15, maxMaxDist=35"
 					Case "creategalaxy" 
-						TPrint "createGalaxy -- NOT IMPLEMENTED" ''' TODO #11
-						Continue ' CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0)
-						TPrint "Description: "
+						TPrint "createGalaxy galaxyType, [x:int = 0, y:int = 0, [angleOffset:int = 0]]"
+						TPrint "Description: Creates a galaxy of the given type centered at x and y."
+						TPrint "\t0  Medium eight armed galaxy all tightly packed and evenly spaced. 76 Systems"
+						TPrint "\t1  Large four armed galaxy with a tightly packed periphery. 272 Systems"
+						TPrint "\t2  Small two armed galaxy, thick center. 44 Systems."
+						TPrint "\t3  Small two armed galaxy, thick center, large but sparse periphery. 124 Systems."
 					Case "say"
 						TPrint "say [...]"
 						TPrint "Description: Broadcasts whatever you want to say to all users."
@@ -211,7 +228,10 @@ Function InputThread:Object(data:Object)
 						TPrint "Description: Overwrites the given username's password. Password will automatically be encoded with MD5."
 					Case "setstatus"
 						TPrint "setStatus username, status:Int"
-						TPrint "Description: Sets the status of the given username. Known status: -1 Banned, 0 Normal, 1337 Admin"
+						TPrint "Description: Sets the status of the given account. Known status types:"
+						TPrint "\t-1   Banned"
+						TPrint "\t0    Normal"
+						TPrint "\t1337 Admin"
 					Case "ban"
 						TPrint "ban username"
 						TPrint "Description: Bans the given user and kicks them."
@@ -237,6 +257,8 @@ Function InputThread:Object(data:Object)
 					Local cmds : String = ""
 					cmds = cmds + "exit" + ", "
 					cmds = cmds + "setLag" + ", "
+					cmds = cmds + "getGameTick" + ", "
+					cmds = cmds + "setGameTick" + ", "
 					cmds = cmds + "setPort" + ", "
 					cmds = cmds + "restart" + ", "
 					cmds = cmds + "toggleGame" + ", "
@@ -244,7 +266,7 @@ Function InputThread:Object(data:Object)
 					cmds = cmds + "saveGame" + ", "
 					cmds = cmds + "createStarfield" + ", "
 					cmds = cmds + "randomStarfield" + ", "
-					'cmds = cmds + "createGalaxy" + ", " ' TODO #11
+					cmds = cmds + "createGalaxy" + ", "
 					cmds = cmds + "say" + ", "
 					cmds = cmds + "newAcc" + ", "
 					cmds = cmds + "changePass" + ", "
@@ -265,6 +287,7 @@ Function InputThread:Object(data:Object)
 				If command.Length > 1 Then currentLag = Int(command[1])
 				If currentLag < 1 Then currentLag = 1
 				If currentLag > 50 Then currentLag = 50
+				TPrint("[] Lag set to: "+currentLag)
 				networkMutex.Unlock()
 				
 			Case "setport"
@@ -272,6 +295,19 @@ Function InputThread:Object(data:Object)
 				If command.Length > 1 Then
 					DEFAULTPORT = Int(command[1])
 					settingsIni.set("server_port", DEFAULTPORT, "network")
+					TPrint("[NETWORK] Port set to: "+DEFAULTPORT + " (Run `restart` command to switch to the new port)")
+				EndIf
+				networkMutex.Unlock()
+				
+			Case "getgametick"
+				TPrint("[GAME] Current Game Tick: "+GAME_TICK_TIME+"ms")
+				
+			Case "setgametick"
+				networkMutex.Lock()
+				If command.Length > 1 Then
+					GAME_TICK_TIME = Int(command[1])
+					settingsIni.set("tick_time_ms", GAME_TICK_TIME, "game")
+					TPrint("[GAME] Game tick time set to: "+GAME_TICK_TIME)
 				EndIf
 				networkMutex.Unlock()
 				
@@ -310,7 +346,7 @@ Function InputThread:Object(data:Object)
 					settingsIni.set("game_id", curGame.gID, "game")
 					curGame.LoadFromFile()
 				Else
-					TPrint "[Game] Unrecongized command argument amount. Expecting 1 arguments"
+					TPrint "[GAME] Unrecongized command argument amount. Expecting 1 arguments"
 				End If
 				networkMutex.Unlock()
 				
@@ -321,7 +357,7 @@ Function InputThread:Object(data:Object)
 					settingsIni.set("game_id", curGame.gID, "game")
 				EndIf
 				curGame.SaveToFile()
-				TPrint "[Saved]"
+				TPrint "[GAME] Saved Game #"+curGame.gID
 				networkMutex.Unlock()
 				
 			Case "createstarfield" ' numOfStars:Int, maxDist:Float, [minDist:Float = 5, [x, y]]
@@ -334,7 +370,7 @@ Function InputThread:Object(data:Object)
 					Case 6
 						curGame.CreateStarfield(Int(command[4]), Int(command[5]), Int(command[1]), Float(command[2]), Float(command[3]))
 					Default
-						TPrint "[Game] Unrecongized command argument amount. Expecting 3,4, or 6 arguments"
+						TPrint "[GAME] Unrecongized command argument amount. Expecting 3,4, or 6 arguments"
 				End Select
 				networkMutex.Unlock()
 				
@@ -345,17 +381,35 @@ Function InputThread:Object(data:Object)
 					Case 2
 					'	curGame.CreateStarfield(0, 0, Int(command[1]), Float(command[2]))
 						curGame.CreateStarfield(Rand(-Int(command[1]), Int(command[1])), Rand(-Int(command[1]), Int(command[1])), Rand(20, 30), Rnd(15, 35), 2)
-						TPrint "[Game] Creating 1 variable random starfield"
+						TPrint "[GAME] Creating 1 variable random starfield"
 					Case 6
 					'	curGame.CreateStarfield(Int(command[4]), Int(command[5]), Int(command[1]), Float(command[2]), Float(command[3]))
 						curGame.CreateStarfield(Rand(-Int(command[1]), Int(command[1])), Rand(-Int(command[1]), Int(command[1])), Rand(Int(command[2]), Int(command[3])), Rnd(Int(command[4]), Int(command[5])), 2)
-						TPrint "[Game] Creating 5 variable random starfield"
+						TPrint "[GAME] Creating 5 variable random starfield"
 					Default
 						curGame.CreateStarfield(Rand(-100, 100), Rand(-100, 100), Rand(20, 30), Rnd(15, 35), 2)
-						TPrint "[Game] Creating default random starfield"
+						TPrint "[GAME] Creating default random starfield"
 				End Select
 				networkMutex.Unlock()
 			
+			Case "creategalaxy" ' createGalaxy galaxyType, [x:int = 0, y:int = 0]
+				networkMutex.Lock()
+				
+				Select command.Length
+					Case 2
+						TPrint "[GAME] Creating galaxy of type "+Int(command[1])
+						curGame.createGalaxy(Int(command[1]))
+					Case 4
+						TPrint "[GAME] Creating galaxy of type "+Int(command[1]) + " at ( "+Int(command[2])+", "+Int(command[3])+" )"
+						curGame.createGalaxy(Int(command[1]),Int(command[2]),Int(command[3]))
+					Case 5
+						TPrint "[GAME] Creating galaxy of type "+Int(command[1]) + " at ( "+Int(command[2])+", "+Int(command[3])+" ) at a " + Int(command[4]) + " degree offset"
+						curGame.createGalaxy(Int(command[1]),Int(command[2]),Int(command[3]),Int(command[4]))
+					Default
+						TPrint "[ERROR] Incorrect number of args to 'createGalaxy'!"
+				End Select
+				networkMutex.Unlock()
+				
 			Case "say"
 				networkMutex.Lock()
 				server.SendBroadcast("[Server] " + Getinput.Replace(command[0] + " ", ""))
@@ -374,7 +428,7 @@ Function InputThread:Object(data:Object)
 						TPrint "[INFO] Added account '" + command[1] + "' with password '" + command[2] + "'!"
 					End If
 				Else
-					TPrint "[ERROR] You can not pass more or less than 2 args to 'newacc'!"
+					TPrint "[ERROR] You can not pass more or less than 2 args to 'newAcc'!"
 				End If
 				networkMutex.Unlock()
 				
