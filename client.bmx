@@ -482,10 +482,10 @@ Function DrawGameScreen()
 	'	If client Then
 	If targetSystem And selectedSystem Then
 		If selectedShips > 0 Then
-			If tb.Draw.ClickableText("Click Here to Send (S)hips: " + selectedShips,  ..
-				(targetSystem.x * MAP_SCALE) + (scnx / 2) - currentXPan,  ..
-				(targetSystem.y * MAP_SCALE) - (MAP_SCALE * 2.1) + (scny / 2) - currentYPan,  ..
-				False, True, True) Or KeyHit(KEY_S) Then ' And msh[1] Then
+			If tb.Draw.ClickableText("(S)end " + selectedShips + " ships",  ..
+					(targetSystem.x * MAP_SCALE) + (scnx / 2) - currentXPan,  ..
+					(targetSystem.y * MAP_SCALE) - (MAP_SCALE * 2.1) + (scny / 2) - currentYPan,  ..
+					False, True, True) Or KeyHit(KEY_S) Then
 				msh[1] = 0
 				client.SendPacket(Packet.ID_CMDSENDFLEET, selectedSystem.netID + "`" + targetSystem.netID + "`" + selectedShips)
 				selectedShips = 0
@@ -988,7 +988,6 @@ Function DrawGalaxyMap()
 			If msh[2] Then
 				If selectedSystem = tsys Then
 					selectedShips:-1 + (tb.KeysDown(KEY_RSHIFT, KEY_LSHIFT) * 4) + (tb.KeysDown(KEY_RCONTROL, KEY_LCONTROL) * 99)
-					If selectedShips < 0 Then selectedShips = 0
 				ElseIf client Then
 					If client.ply Then If selectedSystem Then If tb.Math.GetDistance(selectedSystem.x, selectedSystem.y, tsys.x, tsys.y) <= client.ply.researchTopics[TPlayer.RES_FUELRANGE]
 						If tb.KeysDown(KEY_RALT, KEY_LALT) Then
@@ -999,6 +998,8 @@ Function DrawGalaxyMap()
 						targetSystem = tsys
 					End If
 				End If
+				If selectedShips < 0 Then selectedShips = 0
+				If selectedShips >= selectedSystem.ships Then selectedShips = selectedSystem.ships - 1
 			End If
 			If msh[3] Then
 				If client.ply Then If selectedSystem Then If tb.Math.GetDistance(selectedSystem.x, selectedSystem.y, tsys.x, tsys.y) <= client.ply.researchTopics[TPlayer.RES_FUELRANGE]
