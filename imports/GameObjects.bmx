@@ -380,7 +380,7 @@ Type TGame
 			Case TPlayer.RES_PLANETARYDEFENSE
 				empirePrefix = "defense guru"
 		End Select
-		ply.researchTopics[preferedTopic]:+ply.GetResearchAdvanceAmount(preferedTopic) * 10
+		ply.researchTopics[preferedTopic]:+ply.GetResearchAdvanceAmount(preferedTopic) * (10 + (CurrentTurn / 50.0))
 		ply.nextResearchTopic = preferedTopic
 		
 		SendGNNUpdate("The " + empirePrefix + " " + ply.username + " has joined the game at system " + homeSystem.netID + "!")

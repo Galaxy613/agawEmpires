@@ -101,7 +101,7 @@ Global currentScreen:Int = 0
 DoMain
 
 If client Then
-	If client.Connected() Then client.SendPacket(Packet.ID_MESSAGESELF, "says Goodbye!")
+	If client.Connected() Then client.SendPacket(Packet.ID_MESSAGESELF, "logs off")
 	client.Close()
 End If
 settingsIni.save("client-settings.ini")
@@ -573,104 +573,146 @@ Function Connect(ip:String, port:Int)
 	Return True
 End Function
 
-Function ProcessChatCommand(command:String, arguments:String)
+Function ProcessChatCommand:Int(command:String, arguments:String)
 	Select command.ToLower()
-		Case "login"
-			If client Then
-				Local tmpstr:String[] = arguments.Replace("`", " ").split(" ")
-				If tmpstr.Length = 2 Then
-					client.SendLogin(tmpStr[0], tmpStr[1])
-				Else
-					mainChat.add("[ERROR] You need to provide both a username and a password.", 1)
-				End If
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "setempirename"
-			If client Then
-				client.SendPacket(Packet.ID_SETEMPIRENAME, arguments.Replace("`", ""))
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "sendships"
-			If client Then
-				Local tmpstr:String[] = arguments.Replace("`", " ").split(" ")
-				If tmpStr.Length = 3 Then
-					client.SendPacket(Packet.ID_CMDSENDFLEET, Combine(tmpStr))
-					client.SendPacket(Packet.ID_UPDATEALL, "plz")
-				Else
-					mainChat.add("[ERROR] You need to provide a starting system, a destination system, and the amount of ships you want.", 1)
-				End If
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "toggleshipyard"
-			If client Then
-				client.SendPacket(Packet.ID_CMDBUILDSHIP, arguments.Replace("`", " "))
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "join"
-			If client Then
-				client.SendPacket(Packet.ID_JOINREQUEST, arguments.Replace("`", " "))
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "help"
-			mainChat.add("[HELP] toggleshipyard [id], setempirename [name], sendships [a] [b] [num], list")
-			
-		Case "exit"
-			Return - 1
-			
-		Case "list"
-			If client Then
-				client.SendPacket(Packet.ID_USERLIST, "plz")
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "me"
-			If client Then
-				client.SendPacket(Packet.ID_MESSAGESELF, arguments.Replace("`", " "))
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "disconnect"
-			If client Then
-				client.SendText("Goodbye World!")
-				client.Close()
-				client = Null
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
-			EndIf
-			
-		Case "connect"
-			If Not client Then
-				If arguments <> ""
-					Local tmpstr:String[] = arguments.Replace("`", " ").split(":")
-					If tmpstr.Length = 2 Then
-						Connect(tmpstr[0], Int(tmpstr[1]))
-					ElseIf tmpStr.Length = 1 Then
-						Connect(mainChat.GetVariable(arguments.tolower())._var, Int(mainChat.GetVariable("port")._var))
-					Else
-						mainChat.add("[ERROR] You need to provide a IP and/or a port!", 1)
-					End If
-				Else
-					mainChat.add("[ERROR] No IP/Port or variable name given!", 1)
-				End If
-			Else
-				mainChat.add("[ERROR] Cannot " + command + " because you are already connected!", 1)
-			EndIf
-					
+		
+	Case "help"
+		If arguments.Length > 1 Then
+			'' The mainChat messages must be added in reverse order because that way they'll make the most sense
+			'' to the user.
+			Select Lower(arguments)
+			case "logout"
+				mainChat.add("[HELP] Description: Disconnects you from the game and returns you to the main menu.", 7)
+				mainChat.add("[HELP] Command: /"+arguments, 6)
+			case "setempirename"
+				mainChat.add("[HELP] Description: Changes the name of your empire to NAME.", 7)
+				mainChat.add("[HELP] Command: /setEmpireName NAME", 6)
+			case "sendships"
+				mainChat.add("[HELP] Description: Sends AMT_TO_SEND ships from ORIGIN's system ID to DEST's system ID.", 7)
+				mainChat.add("[HELP] Command: /sendShips ORIGIN_SYS_ID DEST_SYS_ID AMT_TO_SEND", 5)
+			case "toggleshipyard"
+				mainChat.add("[HELP] Description: Toggles whether the system's shipyards are actively building ships or not.", 7)
+				mainChat.add("[HELP] Command: /toggleShipyard SYSTEM_ID", 6)
+			case "join"
+				mainChat.add("[HELP] The player's homeworld begins with 50 + (CurrentTurn / 20) ships.", 7)
+				mainChat.add("[HELP] The player's homeworld is automatically a 10 quality.", 7)
+				mainChat.add("[HELP] The player's speciality is selected randomly.", 7)
+				mainChat.add("[HELP] Description: Joins the current game if a valid joinable system is found.", 7)
+				mainChat.add("[HELP] Command: /"+arguments, 6)
+			case "list"
+				mainChat.add("[HELP] Description: Lists the online players.", 7)
+				mainChat.add("[HELP] Command: /"+arguments, 6)
+			case "me"
+				mainChat.add("[HELP] Description: Sends a message in the 3rd person.", 7)
+				mainChat.add("[HELP] Command: /"+arguments, 6)
 			Default
-			mainChat.add("[ERROR] Command '" + command + "' is not recongized", 1)
+				arguments = "" ' Reset it so that it prints the generic help list below.
+			End Select
+		EndIf
+		If arguments.Length = 0 Then
+			Local cmds : String = ""
+			cmds = cmds + "logout" + ", "
+			cmds = cmds + "setEmpireName" + ", "
+			cmds = cmds + "sendShips" + ", "
+			cmds = cmds + "toggleShipyard" + ", "
+			cmds = cmds + "join" + ", "
+			cmds = cmds + "list" + ", "
+			cmds = cmds + "me"
+			mainChat.add("[HELP] Use '/help COMMAND_NAME' for additional information.", 7)
+			mainChat.add("[HELP] Supported commands: "+cmds, 6)
+		Endif
+		
+	Case "login" '' TODO Players will never have to use this. Remove it?
+		If client Then
+			Local tmpstr:String[] = arguments.Replace("`", " ").split(" ")
+			If tmpstr.Length = 2 Then
+				client.SendLogin(tmpStr[0], tmpStr[1])
+			Else
+				mainChat.add("[ERROR] You need to provide both a username and a password.", 1)
+			End If
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "logout"
+		If client Then
+			client.SendPacket(Packet.ID_MESSAGESELF, "logs off")
+			client.Close()
+			client = Null
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "setempirename"
+		If client Then
+			client.SendPacket(Packet.ID_SETEMPIRENAME, arguments.Replace("`", ""))
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "sendships" '' TODO Players will never have to use this. Remove it?
+		If client Then
+			Local tmpstr:String[] = arguments.Replace("`", " ").split(" ")
+			If tmpStr.Length = 3 Then
+				client.SendPacket(Packet.ID_CMDSENDFLEET, Combine(tmpStr))
+				client.SendPacket(Packet.ID_UPDATEALL, "plz")
+			Else
+				mainChat.add("[ERROR] You need to provide a starting system, a destination system, and the amount of ships you want.", 1)
+			End If
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "toggleshipyard"
+		If client Then
+			client.SendPacket(Packet.ID_CMDBUILDSHIP, arguments.Replace("`", " "))
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "join"
+		If client Then
+			client.SendPacket(Packet.ID_JOINREQUEST, arguments.Replace("`", " "))
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "list"
+		If client Then
+			client.SendPacket(Packet.ID_USERLIST, "plz")
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "me"
+		If client Then
+			client.SendPacket(Packet.ID_MESSAGESELF, arguments.Replace("`", " "))
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you aren't connected yet!", 1)
+		EndIf
+		
+	Case "connect" '' TODO Players will never have to use this. Remove it?
+		If Not client Then
+			If arguments <> ""
+				Local tmpstr:String[] = arguments.Replace("`", " ").split(":")
+				If tmpstr.Length = 2 Then
+					Connect(tmpstr[0], Int(tmpstr[1]))
+				ElseIf tmpStr.Length = 1 Then
+					Connect(mainChat.GetVariable(arguments.tolower())._var, Int(mainChat.GetVariable("port")._var))
+				Else
+					mainChat.add("[ERROR] You need to provide a IP and/or a port!", 1)
+				End If
+			Else
+				mainChat.add("[ERROR] No IP/Port or variable name given!", 1)
+			End If
+		Else
+			mainChat.add("[ERROR] Cannot " + command + " because you are already connected!", 1)
+		EndIf
+				
+	Default
+		mainChat.add("[ERROR] Command '" + command + "' is not recongized", 1)
 	End Select
+	Return 0
 End Function
 
 Function DrawPing(pbX = 0, pbY = 0)
@@ -1078,9 +1120,13 @@ Function UpdateTopLeft()
 			mainChat.enabled = False
 			FlushKeys
 			If mainChat.typ = 1 Then
-				If mainChat.cmd <> "" Then If client Then client.SendText(mainChat.cmd)
-					ElseIf mainChat.typ = 2
-						ProcessChatCommand(mainChat.cmd, mainChat.arg)
+				If mainChat.cmd <> "" Then
+					If client Then
+						client.SendText(mainChat.cmd)
+					EndIf
+				Endif
+			ElseIf mainChat.typ = 2
+				ProcessChatCommand(mainChat.cmd, mainChat.arg)
 			End If
 		EndIf
 	Else

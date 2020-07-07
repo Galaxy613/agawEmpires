@@ -43,9 +43,9 @@ Type _Msg
 			Case 11
 				SetColor cmax, cmax, cmax * 0.7  '' Yellow
 			Case 12
-				SetColor cmax, cmax * 0.7, cmax  '' Purple
+				SetColor cmax, Int(cmax * 0.7), cmax  '' Purple
 			Case 13
-				SetColor cmax * 0.7, cmax, cmax  '' Cyan
+				SetColor Int(cmax * 0.7), cmax, cmax  '' Cyan
 			Default'Case 0
 				SetColor cmax,cmax,cmax
 		End Select
@@ -126,6 +126,7 @@ Type sChatHandler
 	End Method
 	
 	Method DrawList(x:Int, y:Int, direction:Int = 1, fadeout:Int = 20)
+		SetAlpha 1
 		If enabled = False Then SetAlpha 0.5
 		Local sm:_Msg, i%, ttl% = CountList(MessageList)-1
 		For sm = EachIn MessageList
