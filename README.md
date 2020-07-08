@@ -35,21 +35,32 @@ Take a look around the screen, the top bar of the screen, starting from the left
 
 ### Joining
 
+When you log in, you should see a map in front of you. You need to manually join the game by typing `/join`. TODO explain selecting preferr'd research.
+
 ### Sending Fleets
+
+TODO
 
 ### Research
 
+There are 6 different research fields, each apply to some aspect of your empire and its ships.
+
+TODO explain each field
+
 # How to Run a Server
+
+This will be filled out later.
 
 ## Creating a Map
 
 ### Saving/Loading
+
 Generally, the game will automatically save itself periodically. However you can change maps at any time, and nothing is stopping you from backing up the game file at any time.
 
 ## How to Register an Account
 
 ## Kicking and Banning
 
-# Contributions
+# Code Contributions
 
 Contributions are welcome. Ideally you should create an issue before creating a pull request so we can talk about it.
