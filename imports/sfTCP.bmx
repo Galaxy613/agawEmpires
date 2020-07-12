@@ -631,14 +631,23 @@ Type TServerClient Extends TBaseClient
 			If tmp.owner = ply.netID Then
 				SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(-1))
 			Else
-				Local tmpDist:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
-				Local tmpDistOther:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
-				If tmpDistOther < tmpDist Then tmpDist = tmpDistOther
+				Local shortestDistanceFromFleets:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
+				Local shortestDistanceFromSystem:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
+				If shortestDistanceFromSystem < shortestDistanceFromFleets Then
+					shortestDistanceFromFleets = shortestDistanceFromSystem
+				EndIf
 				
-				If ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then ' Note: Range was divided by 4... IMHO that's way to short.
+				If ply.researchTopics[TPlayer.RES_RADARRANGE] > shortestDistanceFromSystem Then
+					'' If this system is within radar range of this player, send system details
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(2))
-				Else
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] / 4 > shortestDistanceFromFleets Then
+					'' If this system is within a fleet's radar range (which is 1/4th the range of a systems')
+					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(2))
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] * 3 > shortestDistanceFromSystem Then
+					'' If this system is within triple the radar range of this player, then send basic data.
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(1))
+				Else
+					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(0))
 				End If
 			End If
 		Else

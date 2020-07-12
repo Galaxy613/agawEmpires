@@ -939,7 +939,7 @@ Type TSystem Extends TNetObject
 			Case 0
 				Local xx:int = Int(Rnd(-10,10) + x)
 				Local yy:int = Int(Rnd(-10,10) + y)
-				Return netID + "`" + xx + "`" + yy + "``-1"
+				Return netID + "`" + xx + "`" + yy + "`-1`-1`-1"
 				
 			Case 1
 				Return netID + "`" + x + "`" + y + "`" + owner + "`-1`-1"
@@ -1037,7 +1037,7 @@ Type TSystem Extends TNetObject
 		SetColor 255, 255, 255
 		Local tmpPlayer:TPlayer = curgame.FindPlayerID(owner)
 		
-		If client And tmpPlayer Then If client.ply Then If tmpPlayer.netID = client.ply.netID Then isPlayers = True
+		If client And tmpPlayer And client.ply And tmpPlayer.netID = client.ply.netID Then isPlayers = True
 		
 		If tmpPlayer Then
 			tb.Draw.SetRGB(tmpPlayer.rgb)
@@ -1104,6 +1104,7 @@ Type TSystem Extends TNetObject
 				SetLineWidth drawMouseOver
 				
 				tb.Draw.DottedCircle((x * MAP_SCALE), (y * MAP_SCALE), MAP_SCALE * client.ply.researchTopics[TPlayer.RES_RADARRANGE], 24)
+				tb.Draw.DottedCircle((x * MAP_SCALE), (y * MAP_SCALE), MAP_SCALE * client.ply.researchTopics[TPlayer.RES_RADARRANGE] * 3, 48)
 				SetLineWidth 1
 			EndIf
 			SetAlpha 1.0
@@ -1245,11 +1246,11 @@ Type TFleet Extends TNetObject
 		tb.Draw.CircleAtAngle(x * MAP_SCALE, y * MAP_SCALE, (MAP_SCALE / 3), angle, 1 + (2 * sides))
 		
 		SetAlpha 0.5
-		If client Then If client.ply Then If owner = client.ply.netID Then
-					If destSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, destSys.x * MAP_SCALE, destSys.y * MAP_SCALE
-					SetAlpha 0.15
-					If homeSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, homeSys.x * MAP_SCALE, homeSys.y * MAP_SCALE
-				EndIf
+		If client And client.ply And owner = client.ply.netID Then
+			If destSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, destSys.x * MAP_SCALE, destSys.y * MAP_SCALE
+			SetAlpha 0.15
+			If homeSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, homeSys.x * MAP_SCALE, homeSys.y * MAP_SCALE
+		EndIf
 		
 		'' Draw text labels
 		If MAP_SCALE < 9
