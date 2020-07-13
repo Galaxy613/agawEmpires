@@ -562,8 +562,8 @@ Type TServerClient Extends TBaseClient
 		Local wname:String = Account.cleanName(packetArray[0])'ReadString(ReadInt()))
 		Local wpass:String = packetArray[1]
 		Local wacc:Account = Account.Find(wname)
-		wpass = wacc.saltify(wpass)
 		If wacc <> Null
+			wpass = wacc.saltify(wpass)
 			If wacc.stat = -1 Then SendText("[Server] You can't log into a banned account!", 1) ;Return
 			If wacc.loggedIn Then SendText("[Server] Someone else is already logged into that account!", 1) ;Return
 			If wpass = wacc.pass Then
