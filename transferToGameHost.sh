@@ -1,3 +1,3 @@
 #!/bin/sh
-scp agawServer.tar.gz root@51.161.57.115:~
+scp $1 root@51.161.57.115:~
 
