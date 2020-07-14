@@ -1,6 +1,4 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558 
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
@@ -26,34 +24,9 @@
             }
         },
         {
-            "label": "Build console-mode INI_Interface.bmx",
+            "label": "Build headless server",
             "type": "bmx",
-            "source": "imports/INI_Interface.bmx",
-            "output": "",
-            "make": "makeapp",
-            "app": "console",
-            "arch": "auto",
-            "platform": "auto",
-            "threaded": true,
-            "debug": false,
-            "quick": false,
-            "execute": false,
-            "verbose": false,
-            "conditionals": [
-                "console"
-            ],
-            "problemMatcher": [
-                "$blitzmax"
-            ],
-            "group": {
-                "kind": "build"
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Build console-mode server.bmx",
-            "type": "bmx",
-            "source": "server.bmx",
+            "source": "agaw-server.bmx",
             "output": "",
             "make": "makeapp",
             "app": "console",
@@ -76,9 +49,31 @@
             }
         },
         {
-            "label": "Build gui-mode server.bmx",
+            "label": "Build Server",
             "type": "bmx",
-            "source": "server.bmx",
+            "source": "agaw-server.bmx",
+            "output": "",
+            "make": "makeapp",
+            "app": "console",
+            "arch": "auto",
+            "platform": "auto",
+            "threaded": true,
+            "debug": false,
+            "quick": false,
+            "execute": false,
+            "verbose": false,
+            "problemMatcher": [
+                "$blitzmax"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Cilent",
+            "type": "bmx",
+            "source": "agaw-client.bmx",
             "output": "",
             "make": "makeapp",
             "app": "gui",
@@ -98,26 +93,8 @@
             }
         },
         {
-            "label": "Build cilent.bmx",
-            "type": "bmx",
-            "source": "client.bmx",
-            "output": "",
-            "make": "makeapp",
-            "app": "gui",
-            "arch": "auto",
-            "platform": "auto",
-            "threaded": true,
-            "debug": false,
-            "quick": false,
-            "execute": false,
-            "verbose": false,
-            "problemMatcher": [
-                "$blitzmax"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+          "label": "Build GUI All",
+          "dependsOn": ["Build Cilent", "Build Server"]
         }
     ]
 }

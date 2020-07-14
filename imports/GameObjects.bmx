@@ -380,7 +380,7 @@ Type TGame
 			Case TPlayer.RES_PLANETARYDEFENSE
 				empirePrefix = "defense guru"
 		End Select
-		ply.researchTopics[preferedTopic]:+ply.GetResearchAdvanceAmount(preferedTopic) * 10
+		ply.researchTopics[preferedTopic]:+ply.GetResearchAdvanceAmount(preferedTopic) * (10 + (CurrentTurn / 50.0))
 		ply.nextResearchTopic = preferedTopic
 		
 		SendGNNUpdate("The " + empirePrefix + " " + ply.username + " has joined the game at system " + homeSystem.netID + "!")
@@ -410,44 +410,53 @@ Type TGame
 		Next
 	End Method
 	
-	Method CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0)
+	Method CreateGalaxy(tType:Int, xx:Int = 0, yy:Int = 0, angleOffset:Int = 0)
 		Local numOfSystems:Int = 13, angleCurve:Float = 13.5, spread:Float = 3.0, startDistance:Int = 4
 		Select tType
-			Case 1
+			Case 1 '' 
 				numOfSystems = 13; angleCurve = 13.0; spread = 3.0; startDistance = 4
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 35; angleCurve = 10.0; spread = 1.5; startDistance = 20
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 72; angleCurve = 5.0; spread = 0.15; startDistance = 70
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 			Case 2
 				numOfSystems = 10; angleCurve = 20.0; spread = 2; startDistance = 2
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				spread = 3; startDistance = 4
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				Default
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				
+			Case 3
+				numOfSystems = 30; angleCurve = 20.0; spread = 2; startDistance = 2
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				spread = 3; startDistance = 4
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+			
+			Default
 				numOfSystems = 8; angleCurve = 15.0; spread = 3.0; startDistance = 7
-				CreateSpiralArm(0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(-90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + -90, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 				
 				numOfSystems = 11; angleCurve = 15.0; spread = 3.0; startDistance = 7
-				CreateSpiralArm(0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm(180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
-				CreateSpiralArm((-90) + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 0 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 90 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + 180 + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
+				CreateSpiralArm(angleOffset + (-90) + 45, numOfSystems, angleCurve, spread, startDistance, xx, yy)
 		End Select
 	End Method
 	
@@ -926,19 +935,21 @@ Type TSystem Extends TNetObject
 	End Function
 	
 	Method Packetize:String(levelOfKnowledge:Int = 0)
-	'	Select levelOfKnowledge
-	'		Case 0
-	'			Return netID + "`" + x + "`" + y + "``-1"
-	'			
-	'		Case 1
-	'			Return netID + "`" + x + "`" + y + "`" + owner + "`-1`-1"
-	'			
-	'		Case 2
-	'			Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships
-	'			
-	'		Default
+		Select levelOfKnowledge
+			Case 0
+				Local xx:int = Int(Rnd(-10,10) + x)
+				Local yy:int = Int(Rnd(-10,10) + y)
+				Return netID + "`" + xx + "`" + yy + "`-1`-1`-1"
+				
+			Case 1
+				Return netID + "`" + x + "`" + y + "`" + owner + "`-1`-1"
+			
+			Case 2
+				Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships
+				
+			Default
 				Return netID + "`" + x + "`" + y + "`" + owner + "`" + quality + "`" + ships + "`" + lastBuild + "`" + isBuilding
-	'	End Select
+		End Select
 	End Method
 	
 	Method UnPack:Int(packet:String[])
@@ -1026,9 +1037,13 @@ Type TSystem Extends TNetObject
 		SetColor 255, 255, 255
 		Local tmpPlayer:TPlayer = curgame.FindPlayerID(owner)
 		
-		If client And tmpPlayer Then If client.ply Then If tmpPlayer.netID = client.ply.netID Then isPlayers = True
+		If client And tmpPlayer And client.ply And tmpPlayer.netID = client.ply.netID Then isPlayers = True
 		
-		If tmpPlayer Then tb.Draw.SetRGB(tmpPlayer.rgb)
+		If tmpPlayer Then
+			tb.Draw.SetRGB(tmpPlayer.rgb)
+		ElseIf ships <= 0 Then
+			SetAlpha( 0.5 )
+		EndIf
 		
 		'' Draw 'Star'
 		If tmpPlayer Then If tmpPlayer.homeSystemID = netID Then
@@ -1089,6 +1104,7 @@ Type TSystem Extends TNetObject
 				SetLineWidth drawMouseOver
 				
 				tb.Draw.DottedCircle((x * MAP_SCALE), (y * MAP_SCALE), MAP_SCALE * client.ply.researchTopics[TPlayer.RES_RADARRANGE], 24)
+				tb.Draw.DottedCircle((x * MAP_SCALE), (y * MAP_SCALE), MAP_SCALE * client.ply.researchTopics[TPlayer.RES_RADARRANGE] * 3, 48)
 				SetLineWidth 1
 			EndIf
 			SetAlpha 1.0
@@ -1230,11 +1246,11 @@ Type TFleet Extends TNetObject
 		tb.Draw.CircleAtAngle(x * MAP_SCALE, y * MAP_SCALE, (MAP_SCALE / 3), angle, 1 + (2 * sides))
 		
 		SetAlpha 0.5
-		If client Then If client.ply Then If owner = client.ply.netID Then
-					If destSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, destSys.x * MAP_SCALE, destSys.y * MAP_SCALE
-					SetAlpha 0.15
-					If homeSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, homeSys.x * MAP_SCALE, homeSys.y * MAP_SCALE
-				EndIf
+		If client And client.ply And owner = client.ply.netID Then
+			If destSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, destSys.x * MAP_SCALE, destSys.y * MAP_SCALE
+			SetAlpha 0.15
+			If homeSys Then DrawLine x * MAP_SCALE, y * MAP_SCALE, homeSys.x * MAP_SCALE, homeSys.y * MAP_SCALE
+		EndIf
 		
 		'' Draw text labels
 		If MAP_SCALE < 9

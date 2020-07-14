@@ -323,13 +323,13 @@ Type TServer
 				Continue
 			End If
 			If MilliSecs() - tclient.lastSpamCheck > 1000 Then If tclient.messagesRecivedRecently > 100 Then
-					Kick tclient, "Spamming Packets"
-					tclient.Close()
-					Continue
-				Else
-					tclient.messagesRecivedRecently:-5
-					If tclient.messagesRecivedRecently < 0 Then tclient.messagesRecivedRecently = 0
-				EndIf
+				Kick tclient, "Spamming Packets"
+				tclient.Close()
+				Continue
+			Else
+				tclient.messagesRecivedRecently:-5
+				If tclient.messagesRecivedRecently < 0 Then tclient.messagesRecivedRecently = 0
+			EndIf
 			If tclient.acc And tclient.acc.stat = -1 Then
 				Kick tclient
 				Continue
@@ -387,13 +387,13 @@ Type TServer
 				
 			'''''
 			If currentTNetObject Then Select TNetObject(currentTNetObject).netTypeID
-					Case TNetObject.ID_SYSTEM
-						tclient.SyncSystems(TSystem(currentTNetObject))
-					Case TNetObject.ID_FLEET
-						tclient.SyncFleets(TFleet(currentTNetObject))
-					Case TNetObject.ID_PLAYER
-						tclient.SyncPlayers(TPlayer(currentTNetObject))
-				End Select
+				Case TNetObject.ID_SYSTEM
+					tclient.SyncSystems(TSystem(currentTNetObject))
+				Case TNetObject.ID_FLEET
+					tclient.SyncFleets(TFleet(currentTNetObject))
+				Case TNetObject.ID_PLAYER
+					tclient.SyncPlayers(TPlayer(currentTNetObject))
+			End Select
 		Else
 			tclient.recievedMessages.Clear()
 		EndIf
@@ -402,7 +402,8 @@ Type TServer
 			
 		'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 		''' SYNCING!
-		curGame.ddebugStr = "Sector 3" ; If tclient.ply Then
+		curGame.ddebugStr = "Sector 3"
+		If tclient.ply Then
 			If tclient.ply.messages.Count() > 0 Then
 				tclient.SendPacket(Packet.ID_MESSAGEATTACHE, curGame.GetYear() + " " + String(tclient.ply.messages.RemoveFirst()))
 			EndIf
@@ -562,6 +563,7 @@ Type TServerClient Extends TBaseClient
 		Local wpass:String = packetArray[1]
 		Local wacc:Account = Account.Find(wname)
 		If wacc <> Null
+			wpass = wacc.saltify(wpass)
 			If wacc.stat = -1 Then SendText("[Server] You can't log into a banned account!", 1) ;Return
 			If wacc.loggedIn Then SendText("[Server] Someone else is already logged into that account!", 1) ;Return
 			If wpass = wacc.pass Then
@@ -587,7 +589,7 @@ Type TServerClient Extends TBaseClient
 		''' fromnetID, tonetID, ships
 		If packetArray.Length <> 3 Then SendText("[Server] Incomplete Fleet Dispatch Request Packet, Try Again", 1) ; Return False
 		Local fromSys:TSystem = curGame.FindSystemID(Int(packetArray[0]))
-		If fromSys.owner <> ply.netID Then
+		If fromSys.owner <> ply.netID And acc.stat < 1337 Then
 			TPrint "[WARNING!GAME] Recieved a fleet send request from " + name + " to send ships from someone else's system."
 			SendText("[Server] You can not send fleet requests to other people's system!", 1)
 			Return False
@@ -620,18 +622,32 @@ Type TServerClient Extends TBaseClient
 		CurrentTSystem:+1
 		If Not tmp Then Return False
 		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(-1))
+			Return True
+		EndIf
+		
 		If ply Then
 			If tmp.owner = ply.netID Then
 				SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(-1))
 			Else
-				Local tmpDist:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
-				Local tmpDistOther:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
-				If tmpDistOther < tmpDist Then tmpDist = tmpDistOther
+				Local shortestDistanceFromFleets:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
+				Local shortestDistanceFromSystem:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
+				If shortestDistanceFromSystem < shortestDistanceFromFleets Then
+					shortestDistanceFromFleets = shortestDistanceFromSystem
+				EndIf
 				
-				If ply.researchTopics[TPlayer.RES_RADARRANGE] / 4 > tmpDist Then
+				If ply.researchTopics[TPlayer.RES_RADARRANGE] > shortestDistanceFromSystem Then
+					'' If this system is within radar range of this player, send system details
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(2))
-				Else
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] / 4 > shortestDistanceFromFleets Then
+					'' If this system is within a fleet's radar range (which is 1/4th the range of a systems')
+					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(2))
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] * 3 > shortestDistanceFromSystem Then
+					'' If this system is within triple the radar range of this player, then send basic data.
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(1))
+				Else
+					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_SYSTEM + "`" + tmp.Packetize(0))
 				End If
 			End If
 		Else
@@ -645,6 +661,12 @@ Type TServerClient Extends TBaseClient
 		'If CurrentTFleet = 0 Then TPrint "[Info] Starting to Sync Fleets for " + name
 		CurrentTFleet:+1
 		If Not tmp Then Return False
+		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(-1))
+			Return True
+		EndIf
+		
 		If ply Then
 			'' 0Galaxy; 1LongRng; 2Nearby; 3Own
 			If tmp.owner = ply.netID Then
@@ -653,10 +675,10 @@ Type TServerClient Extends TBaseClient
 				Local tmpDist:Float = curGame.GetShortestDistFromPlayersFleets(tmp.x, tmp.y, ply)
 				Local tmpDistOther:Float = curGame.GetShortestDistFromPlayersSystems(tmp.x, tmp.y, ply)
 				If tmpDistOther < tmpDist Then tmpDist = tmpDistOther
-				If ply.researchTopics[TPlayer.RES_RADARRANGE] / 2 > tmpDist Then
+				If ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then
 					'		Print name + " [netID" + tmp.netID + "] ply.radarRange / 2 > tmpDist = " + (ply.radarRange / 2) + " > " + tmpDist
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(2)) '' Nearby!
-				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] > tmpDist Then
+				ElseIf ply.researchTopics[TPlayer.RES_RADARRANGE] * 1.5 > tmpDist Then
 					'		Print name + " [netID" + tmp.netID + "] ply.radarRange > tmpDist = " + (ply.radarRange) + " > " + tmpDist
 					SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_FLEET + "`" + tmp.Packetize(1)) '' Long Range Sensors
 				End If
@@ -672,6 +694,11 @@ Type TServerClient Extends TBaseClient
 		'if CurrentTPlayer = 0 Then TPrint "[Info] Starting to Sync Players for " + name
 		CurrentTPlayer:+1
 		If Not tply Then Return False
+		
+		If acc.stat >= 1337 Then
+			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_PLAYER + "`" + tply.Packetize(5))
+			Return True
+		EndIf
 		
 		If name = tply.username Then
 			SendPacket(Packet.ID_UPDATEOBJ, TNetObject.ID_PLAYER + "`" + tply.Packetize(5))
@@ -774,7 +801,7 @@ Type TServerClient Extends TBaseClient
 				
 			Case Packet.ID_CMDSENDFLEET
 				If auth Then
-					If ply Then
+					If ply Or acc.stat >= 1337 Then
 						DealWithFleetRequest(packetArray)
 					Else
 						TPrint "[WARNING!GAME] Recieved a fleet send request from " + name + ", but isn't authorized."
@@ -997,7 +1024,7 @@ Type TMasterClient Extends TBaseClient
 	End Method
 	
 	Method SendLogin(name:String, pass:String)
-		SendPacket(Packet.ID_LOGIN, name + "`" + MD5(pass))
+		SendPacket(Packet.ID_LOGIN, name + "`" + preparePassword(pass))
 	End Method
 	
 	Method SyncTGame()

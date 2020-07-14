@@ -14,8 +14,13 @@ If you were smart enough to read this far before typing /join, you can place a n
 
 HOW TO PLAY:
 
-You can pan around using the left mouse button, just click and drag the screen around, zoom with the mouse wheel.
+You can pan around using the left mouse button, just click and drag the screen around, zoom with the mouse wheel or +/- keys.
 
-To move your fleets around, left click the planet you want to move them too, then right click the place you want to send them.
+To move your fleets around, left click the planet you want to move them too, then right click the place you want to send them. Shift/Ctrl increases the amount of ships sent.
 
 Make sure you check your research tab and change what you are researching now and again.
+
+FEEDBACK/ISSUES:
+
+FAQ: https://github.com/Galaxy613/agawEmpires/wiki/Frequently-Asked-Questions
+Please check the repository's existing issues before creating one.

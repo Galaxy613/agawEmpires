@@ -43,9 +43,9 @@ Type _Msg
 			Case 11
 				SetColor cmax, cmax, cmax * 0.7  '' Yellow
 			Case 12
-				SetColor cmax, cmax * 0.7, cmax  '' Purple
+				SetColor cmax, Int(cmax * 0.7), cmax  '' Purple
 			Case 13
-				SetColor cmax * 0.7, cmax, cmax  '' Cyan
+				SetColor Int(cmax * 0.7), cmax, cmax  '' Cyan
 			Default'Case 0
 				SetColor cmax,cmax,cmax
 		End Select
@@ -126,6 +126,7 @@ Type sChatHandler
 	End Method
 	
 	Method DrawList(x:Int, y:Int, direction:Int = 1, fadeout:Int = 20)
+		SetAlpha 1
 		If enabled = False Then SetAlpha 0.5
 		Local sm:_Msg, i%, ttl% = CountList(MessageList)-1
 		For sm = EachIn MessageList
@@ -302,83 +303,6 @@ Type sTextBox
 			Case 8 ' BackSpace
 				currentString = currentString[..currentString.length-1]
 			
-				Rem Apparently I didn't want the rest of this functionality? KWN 6/2020
-			Case 13 ' Enter
-				arg = ""
-				cmd = ""
-				typ = 1
-				If currentString[..2] = "/="	'VARIABLE CHANGE
-					cmd = currentString[2..]
-					I:Int = cmd.Find(" ")	',arg$
-					
-					Local tVar:sVar
-					If i<>-1
-						arg=cmd[i+1..]
-						cmd=cmd[..i]
-						setvariable(cmd, arg)
-						tVar = GetVariable(cmd)
-						If tVar
-						'	Add("Set: $"+tvar.ToString(),6)
-							Select cmd
-							'	Case "port"
-							'		GAMEPORT = Int(arg)
-								Case "vlevel"
-									verboseLevel = Int(arg)
-							End Select
-						Else
-							Add("No such variable as '"+cmd+"'!",1)
-						End If
-					Else
-						tVar = GetVariable(cmd)
-						If tVar
-							Add("$"+tvar.ToString(),6)
-						Else
-							add("No such variable as '" + cmd + "'!", 1)
-						End If						
-					EndIf
-					
-					typ = 0
-					arg = ""
-					cmd = ""
-					currentString = ""
-				ElseIf currentString[..2] = "/+"	'VARIABLE CREATION
-					cmd = currentString[2..]
-					I:Int = cmd.Find(" ")	',arg$
-					
-					If i<>-1
-						arg=cmd[i+1..]
-						cmd = cmd[..I]
-						NewVariable(cmd, arg)
-						add("$ " + cmd + "=" + arg, 2)
-					Else
-						add("When creating a variable you must provide non-zero data", 1)
-					EndIf
-					
-					typ = 0
-					arg = ""
-					cmd = ""
-					currentString = ""
-				ElseIf currentString[..1] = "/"	'COMMAND
-					'Local 
-					cmd=currentString[1..]
-					I:Int = cmd.Find(" ")',arg$
-					
-					If i<>-1
-						arg=cmd[i+1..]
-						cmd=cmd[..i]
-					EndIf
-					
-					typ = 2
-					currentString=""
-					Return cmd.ToLower()
-				Else
-					cmd = currentString
-					currentString = ""
-					Return cmd
-				EndIf
-				
-				currentString=""
-			Endrem
 			Default ' If an actual character...
 				If c>31 And c<127 Then currentString:+Chr(c)
 		End Select
