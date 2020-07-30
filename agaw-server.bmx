@@ -423,7 +423,7 @@ Function InputThread:Object(data:Object)
 					If Account.Find(command[1]) <> Null Then
 						TPrint "[ERROR] Username '" + command[1] + "' already exists!"
 					Else
-						Account.Create(command[1], command[2])
+						Account.Create(command[1], command[2], AccountKey.Generate())
 						Account.SaveToFile()
 						TPrint "[INFO] Added account '" + command[1] + "' with password '" + command[2] + "'!"
 					End If

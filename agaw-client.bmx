@@ -2,9 +2,9 @@ Strict
 
 Import "imports/Toolbox.bmx"
 Import "imports/sfTCP.bmx"
-Import "imports/clientChatDisplay.bmx"
 Import "imports/RequestText.bmx"
 Import "imports/INI_Interface.bmx"
+Include "imports/clientChatDisplay.bmx"
 
 Incbin "version.txt"
 Incbin "OCRAEXT.TTF"
@@ -27,7 +27,7 @@ If FileType("client-settings.ini") = 0 Then
 	
 	Local serverName:String = RequestText("Set Server", "Please input the server IP or server domain.", "127.0.0.1")
 	
-	if not serverName or serverName = "" Then RuntimeError( "Client needs a server to connect to." )
+	If Not serverName Or serverName = "" Then RuntimeError( "Client needs a server to connect to." )
 	
 	settingsIni.set("screen_width", 1280, "graphics")
 	settingsIni.set("screen_height", 720, "graphics")
@@ -41,13 +41,13 @@ scnx = settingsIni.GetInteger( "screen_width", "graphics" )
 scny = settingsIni.GetInteger( "screen_height", "graphics" )
 mainChat.NewVariable("server_ip", settingsIni.GetString( "server_ip", "network" ))
 mainChat.NewVariable("port", settingsIni.GetString( "server_port", "network" ))
-Local screenMode:int = 0
+Local screenMode:Int = 0
 If settingsIni.ItemExists("fullscreen", "graphics") Then
 	screenMode = settingsIni.GetInteger( "fullscreen", "graphics" ) * 32
 Else
 	settingsIni.set("fullscreen", screenMode / 32, "graphics")
 EndIf
-Local screenHertz:int = 60
+Local screenHertz:Int = 60
 If settingsIni.ItemExists("hertz", "graphics") Then
 	screenHertz = settingsIni.GetInteger( "hertz", "graphics" )
 Else
@@ -97,6 +97,11 @@ TerritorySquare.CreateGrid(50, 4)
 
 Global tgEnabled = True
 Global currentScreen:Int = 0
+
+Global registerButton:sButton = New sButton
+registerButton.text = "Register"
+Global loginButton:sButton = New sButton
+loginButton.text = "Login"
 
 DoMain
 
@@ -240,6 +245,8 @@ Function DoLoginScreen()
 
 	usernameCH.SetPosition(tmpX + 16, tmpY + 24)
 	passwordCH.SetPosition(tmpX + 16, tmpY + 64)
+	registerButton.SetPosition((scnx / 2) - 96, tmpY + 128)
+	loginButton.SetPosition((scnx / 2) + 96, tmpY + 128)
 	
 	If KeyHit(KEY_ENTER) And client Then
 		If usernameCH.currentString = "" Then
@@ -301,15 +308,17 @@ Function DoLoginScreen()
 	tb.Draw.CenteredText(version, scnx / 2, scny / 2 - 128 + 32)
 	
 	'DrawRect tmpX, tmpY, 320, 128
-	DrawImageRect(menuBars[3], tmpX - 4, tmpY - 4, 480 + 8, 128 + 8)
+	DrawImageRect(menuBars[3], tmpX - 4, tmpY - 4, 480 + 8, 196 + 8)
 	SetColor 96, 96, 128
-	DrawImageRect(menuBars[3], tmpX, tmpY, 480, 128)
+	DrawImageRect(menuBars[3], tmpX, tmpY, 480, 196)
 	SetColor 255, 255, 255
 	SetAlpha 1.0
 		
 	SetImageFont medFont
 	usernameCH.Draw()
 	passwordCH.Draw()
+	registerButton.Draw()
+	loginButton.Draw()
 	
 	SetImageFont stdFont
 	If client
@@ -320,6 +329,7 @@ Function DoLoginScreen()
 		tb.Draw.CenteredText "Connecting to " + mainChat.GetVariable("server_ip".tolower())._var + ":" + Int(mainChat.GetVariable("port")._var), scnx / 2, tmpY - 32
 	End If
 	SetColor 255, 255, 255
+	
 End Function
 
 Function DoSyncScreen()
@@ -581,28 +591,28 @@ Function ProcessChatCommand:Int(command:String, arguments:String)
 			'' The mainChat messages must be added in reverse order because that way they'll make the most sense
 			'' to the user.
 			Select Lower(arguments)
-			case "logout"
+			Case "logout"
 				mainChat.add("[HELP] Description: Disconnects you from the game and returns you to the main menu.", 7)
 				mainChat.add("[HELP] Command: /"+arguments, 6)
-			case "setempirename"
+			Case "setempirename"
 				mainChat.add("[HELP] Description: Changes the name of your empire to NAME.", 7)
 				mainChat.add("[HELP] Command: /setEmpireName NAME", 6)
-			case "sendships"
+			Case "sendships"
 				mainChat.add("[HELP] Description: Sends AMT_TO_SEND ships from ORIGIN's system ID to DEST's system ID.", 7)
 				mainChat.add("[HELP] Command: /sendShips ORIGIN_SYS_ID DEST_SYS_ID AMT_TO_SEND", 5)
-			case "toggleshipyard"
+			Case "toggleshipyard"
 				mainChat.add("[HELP] Description: Toggles whether the system's shipyards are actively building ships or not.", 7)
 				mainChat.add("[HELP] Command: /toggleShipyard SYSTEM_ID", 6)
-			case "join"
+			Case "join"
 				mainChat.add("[HELP] The player's homeworld begins with 50 + (CurrentTurn / 20) ships.", 7)
 				mainChat.add("[HELP] The player's homeworld is automatically a 10 quality.", 7)
 				mainChat.add("[HELP] The player's speciality is selected randomly.", 7)
 				mainChat.add("[HELP] Description: Joins the current game if a valid joinable system is found.", 7)
 				mainChat.add("[HELP] Command: /"+arguments, 6)
-			case "list"
+			Case "list"
 				mainChat.add("[HELP] Description: Lists the online players.", 7)
 				mainChat.add("[HELP] Command: /"+arguments, 6)
-			case "me"
+			Case "me"
 				mainChat.add("[HELP] Description: Sends a message in the 3rd person.", 7)
 				mainChat.add("[HELP] Command: /"+arguments, 6)
 			Default
@@ -620,7 +630,7 @@ Function ProcessChatCommand:Int(command:String, arguments:String)
 			cmds = cmds + "me"
 			mainChat.add("[HELP] Use '/help COMMAND_NAME' for additional information.", 7)
 			mainChat.add("[HELP] Supported commands: "+cmds, 6)
-		Endif
+		EndIf
 		
 	Case "login" '' TODO Players will never have to use this. Remove it?
 		If client Then
@@ -1124,7 +1134,7 @@ Function UpdateTopLeft()
 					If client Then
 						client.SendText(mainChat.cmd)
 					EndIf
-				Endif
+				EndIf
 			ElseIf mainChat.typ = 2
 				ProcessChatCommand(mainChat.cmd, mainChat.arg)
 			End If

@@ -253,12 +253,87 @@ End Function
 
 ''
 
+Type AccountKey
+	Global accountKeyList:TList = CreateList()
+	
+	Field key:String, created:Int, stat:Int
+	
+	Function Create:AccountKey()
+		Local acc:AccountKey = New AccountKey
+		accountKeyList.AddLast(acc)
+		acc.key = pickANewKey()
+		acc.created = MilliSecs()
+		Return acc
+	End Function
+	
+	Function Generate:String()
+		Local key:String = MD5(String(MilliSecs()))
+		Return (Left(Key, 4) + "-" + Mid( Key, 7, 4 ) + "-" + Right(Key,4)).ToLower()
+	EndFunction
+	
+	Function pickANewKey:String()
+		Local key:String
+		Local acc:AccountKey
+		Repeat
+			key = Generate()
+			acc = Find(key)
+		Until acc = null
+		Return key
+	End Function
+	
+	Function Find:AccountKey(key:String)
+		key = key.ToLower()
+		For Local acc:AccountKey = EachIn accountKeyList
+			If acc.key.ToLower() = key Then Return acc
+		Next
+		Return Null
+	End Function
+	
+	Function Remove(acc:AccountKey)
+		accountKeyList.Remove( acc )
+	EndFunction
+	
+	Function LoadFile(filename:String = "keys.dat")
+		Local Handle:TStream = ReadFile(filename)
+		accountKeyList.Clear()
+		If Handle <> Null
+			Repeat
+				Local acc:AccountKey = New AccountKey
+				acc.key = Handle.ReadString(Handle.ReadInt())
+				acc.created = Handle.ReadInt()
+				acc.stat = Handle.ReadInt()
+				ListAddLast(accountKeyList, acc)
+			Until Eof(Handle)
+			CloseFile(Handle)
+		Else
+			TPrint "[WARNING] FAILED TO READ FILE: " + filename
+		EndIf
+		Print "[INFO] Loaded #" + accountKeyList.Count() + " account keys!"
+	End Function
+	
+	Function SaveToFile(filename:String = "keys.dat")
+		Local Handle:TStream = WriteFile(filename)
+		If Handle <> Null
+			For Local acc:AccountKey = EachIn accountKeyList
+				Handle.WriteInt(acc.key.Length)
+				Handle.WriteString(acc.key)
+				Handle.WriteInt(acc.created)
+				Handle.WriteInt(acc.stat)
+			Next
+			CloseFile(Handle)
+		Else
+			TPrint "[WARNING] FAILED TO READ FILE: " + filename
+		EndIf
+	End Function
+	
+End Type	
+
 Type Account
 	Global accountList:TList = CreateList()
 	
 	' TODO Add constants or a enum for the `stat` field.
 	
-	Field name:String, pass:String, stat:Int, loggedIn:Int
+	Field name:String, pass:String, key:String, stat:Int, loggedIn:Int
 	Field salt:String
 	Field data:TMap = CreateMap()
 	
@@ -280,10 +355,11 @@ Type Account
 		Return Null
 	End Function
 	
-	Function Create:Account(nname:String, ppass:String)
+	Function Create:Account(nname:String, ppass:String, kkey:String)
 		Local acc:Account = New Account
 		accountList.AddLast(acc)
 		acc.name = nname
+		acc.key = kkey
 		acc.salt = MD5(MilliSecs())
 		acc.pass = acc.saltify(ppass)
 	End Function
@@ -297,6 +373,8 @@ Type Account
 				acc.name = Handle.ReadString(Handle.ReadInt())
 				If Find(acc.name) Then
 					acc = Find(acc.name)
+				Else
+					ListAddLast(accountList, acc)
 				EndIf
 				acc.salt = Handle.ReadString(Handle.ReadInt())
 				acc.pass = Handle.ReadString(Handle.ReadInt())
@@ -310,7 +388,6 @@ Type Account
 				EndIf
 				acc.loggedIn = Handle.ReadInt() ''' Whatevs yo
 				acc.loggedIn = False
-				ListAddLast(accountList, acc)
 			'	Print "Loaded " + acc.name + " Status: " + acc.stat
 			Until Eof(Handle)
 			CloseFile(Handle)

@@ -4,7 +4,7 @@ This is just a fancy way to display messages to the client user.
 
 end rem
 
-Import "Toolbox.bmx"
+'Import "Toolbox.bmx"
 
 Type _Msg
 	Field txt:String = "", clr = 0, ms:Int
@@ -309,6 +309,47 @@ Type sTextBox
 		EndIf
 		
 		If tb.PointIn.MouseInRect(x, y, TextWidth(Prompttxt + currentString), TextHeight("asdf")) And msh[1] Then msh[1] = 0; Return True
+		Return False
+	End Method
+End Type
+
+Type sButton
+	Field enabled = True, show = True
+	Field drawWhenEmpty = True
+	Field Text$="Text Here: ",currentString:String, isPassword:Int = False
+	Field cmd:String, arg:String, typ:Int
+	Field x:Int, y:Int
+	
+	Method SetPosition(xx:Int, yy:Int)
+		x = xx ; y = yy
+	End Method
+	
+	Method Draw()
+		If enabled = False And Not show Then Return
+		Global pulse = -1
+		If enabled Then SetColor 200, 255, 200
+		
+		Local width% = menuBars[0].width / 2
+		Local height% = menuBars[0].height / 2
+		DrawImage(menuBars[enabled + 1], x-width, y-height)
+		width = TextWidth(Text) / 2
+		height = TextHeight("asdf")/2
+		tb.Draw.TextOutline(Text, x, y-height)
+		
+		SetColor 255, 255, 255
+		DrawLine x-32,y,x+32,y
+		DrawLine x,y-32,x,y+32
+		
+	End Method
+	
+	Method CheckInput()
+		Local width% = TextWidth(Text)/2
+		Local height% = TextHeight("asdf")/2
+		enabled = False
+		If tb.PointIn.MouseInRect(x-width, y-height, width*2, height*2) Then
+			enabled = True
+			If msh[1] Then msh[1] = 0; Return True
+		EndIf
 		Return False
 	End Method
 End Type
