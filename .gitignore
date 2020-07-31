@@ -6,4 +6,4 @@ game*.txt
 *.sh
 *.tar*
 *.debug
-accounts.dat
+*.dat

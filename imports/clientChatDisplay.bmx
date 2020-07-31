@@ -314,7 +314,7 @@ Type sTextBox
 End Type
 
 Type sButton
-	Field enabled = True, show = True
+	Field enabled = True, hit = False, show = True
 	Field drawWhenEmpty = True
 	Field Text$="Text Here: ",currentString:String, isPassword:Int = False
 	Field cmd:String, arg:String, typ:Int
@@ -329,26 +329,29 @@ Type sButton
 		Global pulse = -1
 		If enabled Then SetColor 200, 255, 200
 		
-		Local width% = menuBars[0].width / 2
-		Local height% = menuBars[0].height / 2
+		Local width% = menuBars[1].width / 2
+		Local height% = menuBars[1].height / 2
+		SetAlpha( (hit * 0.3) + 0.7 )
 		DrawImage(menuBars[enabled + 1], x-width, y-height)
 		width = TextWidth(Text) / 2
 		height = TextHeight("asdf")/2
-		tb.Draw.TextOutline(Text, x, y-height)
-		
-		SetColor 255, 255, 255
-		DrawLine x-32,y,x+32,y
-		DrawLine x,y-32,x,y+32
+		SetAlpha( 1.0 )
+		tb.Draw.TextOutline(Text, x-width, y-height)
 		
 	End Method
 	
 	Method CheckInput()
-		Local width% = TextWidth(Text)/2
-		Local height% = TextHeight("asdf")/2
+		Local width% = menuBars[1].width / 2
+		Local height% = menuBars[1].height / 2
 		enabled = False
+		hit = False
 		If tb.PointIn.MouseInRect(x-width, y-height, width*2, height*2) Then
 			enabled = True
-			If msh[1] Then msh[1] = 0; Return True
+			If msh[1] Then
+				hit = True
+				msh[1] = 0
+				Return True
+			EndIf
 		EndIf
 		Return False
 	End Method

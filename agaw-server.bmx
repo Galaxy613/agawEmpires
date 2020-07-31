@@ -220,6 +220,12 @@ Function InputThread:Object(data:Object)
 					Case "say"
 						TPrint "say [...]"
 						TPrint "Description: Broadcasts whatever you want to say to all users."
+					Case "createkey" ' Create key(s)
+						TPrint "createKey [stat:int, [amount:int]]"
+						TPrint "Description: See the help of 'setStatus' for valid stat values."
+					Case "listkeys" ' Lists available keys along with their stat
+						TPrint "listKeys"
+						TPrint "Description: Lists available keys along with the account status of the key."
 					Case "newacc"
 						TPrint "newAcc username, password"
 						TPrint "Description: Registers a new account. Password will automatically be encoded with MD5."
@@ -268,6 +274,8 @@ Function InputThread:Object(data:Object)
 					cmds = cmds + "randomStarfield" + ", "
 					cmds = cmds + "createGalaxy" + ", "
 					cmds = cmds + "say" + ", "
+					cmds = cmds + "createkey" + ", " ' Create key(s)
+					cmds = cmds + "listkeys" + ", " ' Lists available keys along with their stat
 					cmds = cmds + "newAcc" + ", "
 					cmds = cmds + "changePass" + ", "
 					cmds = cmds + "setStatus" + ", "
@@ -414,6 +422,34 @@ Function InputThread:Object(data:Object)
 				networkMutex.Lock()
 				server.SendBroadcast("[Server] " + Getinput.Replace(command[0] + " ", ""))
 				networkMutex.Unlock()
+				
+			Case "createkey" ' Create key(s)
+				networkMutex.Lock()
+				Select command.Length
+				Case 1 '
+					TPrint(AccountKey.Create(0).toString())
+				Case 2 ' status
+					TPrint(AccountKey.Create(Int(command[1])).toString())
+				Case 3 ' status, amount
+					Local stat% = Int(command[1])
+					Local account% = Int(command[2])
+					For Local i = 0 to account
+						TPrint(AccountKey.Create(stat).toString())
+					Next
+				Default
+					TPrint "[ERROR] Incorrect number of args to 'createKey'!"
+				End Select
+				AccountKey.SaveToFile()
+				networkMutex.Unlock()
+				
+			Case "listkeys" ' Lists available keys along with their stat
+				networkMutex.Lock()
+				AccountKey.LoadFile()
+				networkMutex.Unlock()
+				For Local acc:AccountKey = EachIn AccountKey.accountKeyList
+					TPrint(acc.toString())
+				Next
+				TPrint("Total Account Keys: "+AccountKey.accountKeyList.Count())
 				
 			Case "newacc"
 				networkMutex.Lock()

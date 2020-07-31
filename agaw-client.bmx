@@ -239,14 +239,38 @@ Function UpdateClient()
 	EndIf
 End Function
 
+Function DoLogin()
+	If usernameCH.currentString <> "" And passwordCH.currentString <> "" Then
+		client.SendLogin(usernameCH.currentString, passwordCH.currentString)
+		settingsIni.set("user_name", usernameCH.currentString, "game")
+		passwordCH.currentString = ""
+		usernameCH.enabled = False
+		passwordCH.enabled = False
+	End If
+EndFunction
+
+Function DoRegister()
+	Local key:String = ""
+	If usernameCH.currentString <> "" And passwordCH.currentString <> "" Then
+		If key = null Then
+			key = RequestText("Enter Account Key", "Please enter the key given to you by the server admin.")
+		EndIf
+		
+		client.AttemptRegister(key, usernameCH.currentString, passwordCH.currentString)
+		settingsIni.set("user_name", usernameCH.currentString, "game")
+		usernameCH.enabled = False
+		passwordCH.enabled = False
+	End If
+EndFunction
+
 Function DoLoginScreen()
 	Local tmpX = scnx / 2 - 240
 	Local tmpY = scny / 2
 
 	usernameCH.SetPosition(tmpX + 16, tmpY + 24)
 	passwordCH.SetPosition(tmpX + 16, tmpY + 64)
-	registerButton.SetPosition((scnx / 2) - 96, tmpY + 128)
-	loginButton.SetPosition((scnx / 2) + 96, tmpY + 128)
+	registerButton.SetPosition((scnx / 2) - 128, tmpY + 160)
+	loginButton.SetPosition((scnx / 2) + 128, tmpY + 160)
 	
 	If KeyHit(KEY_ENTER) And client Then
 		If usernameCH.currentString = "" Then
@@ -256,13 +280,7 @@ Function DoLoginScreen()
 			passwordCH.enabled = True
 			usernameCH.enabled = False
 		End If
-		If usernameCH.currentString <> "" And passwordCH.currentString <> "" Then
-			client.SendLogin(usernameCH.currentString, passwordCH.currentString)
-			settingsIni.set("user_name", usernameCH.currentString, "game")
-			passwordCH.currentString = ""
-			usernameCH.enabled = False
-			passwordCH.enabled = False
-		End If
+		DoLogin()
 	End If
 	
 	If KeyHit(KEY_TAB)
@@ -279,7 +297,14 @@ Function DoLoginScreen()
 	Local usernameSelected:Int = usernameCH.CheckInput()
 	Local passwordSelected:Int = passwordCH.CheckInput()
 	If usernameCH.enabled = False And passwordCH.enabled = False Then GetChar()
+	
+	If registerButton.CheckInput()
+		DoRegister()
+	ElseIf loginButton.CheckInput()
+		DoLogin()
+	Endif
 	SetImageFont stdFont
+	
 	If usernameSelected
 		usernameCH.enabled = True
 		passwordCH.enabled = False

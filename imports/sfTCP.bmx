@@ -571,7 +571,7 @@ Type TServerClient Extends TBaseClient
 			SendText("[Server] The provided key does not exist.", 1)
 		Else
 			Local acc:Account = Account.Create(wname, wpass, key)
-			Local accKey:AccountKey = AccountKey.find(key)
+			Local accKey:AccountKey = AccountKey.Find(key)
 			acc.stat = accKey.stat
 			AccountKey.Remove(accKey)
 			Account.SaveToFile()

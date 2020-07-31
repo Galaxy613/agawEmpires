@@ -258,10 +258,15 @@ Type AccountKey
 	
 	Field key:String, created:Int, stat:Int
 	
-	Function Create:AccountKey()
+	Method toString:String()
+		Return key+ " $["+stat+"] Created: "+ Int((MilliSecs()-created)/86400000) +" days ago"
+	EndMethod
+	
+	Function Create:AccountKey(accStat%)
 		Local acc:AccountKey = New AccountKey
 		accountKeyList.AddLast(acc)
 		acc.key = pickANewKey()
+		acc.stat = accStat
 		acc.created = MilliSecs()
 		Return acc
 	End Function
@@ -362,6 +367,7 @@ Type Account
 		acc.key = kkey
 		acc.salt = MD5(MilliSecs())
 		acc.pass = acc.saltify(ppass)
+		Return acc
 	End Function
 	
 	Function LoadFile(filename:String = "accounts.dat")
@@ -376,6 +382,7 @@ Type Account
 				Else
 					ListAddLast(accountList, acc)
 				EndIf
+				acc.key = Handle.ReadString(Handle.ReadInt())
 				acc.salt = Handle.ReadString(Handle.ReadInt())
 				acc.pass = Handle.ReadString(Handle.ReadInt())
 				acc.stat = Handle.ReadInt() ''' ColorString?
@@ -403,6 +410,8 @@ Type Account
 			For Local acc:Account = EachIn accountList
 				Handle.WriteInt(acc.name.Length)
 				Handle.WriteString(acc.name)
+				Handle.WriteInt(acc.key.Length)
+				Handle.WriteString(acc.key)
 				Handle.WriteInt(acc.salt.Length)
 				Handle.WriteString(acc.salt)
 				Handle.WriteInt(acc.pass.Length)
