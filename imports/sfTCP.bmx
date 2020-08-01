@@ -47,6 +47,7 @@ Type Packet
 	
 	Const ID_LOGIN:Int = 20
 	Const ID_USERLIST:Int = 21
+	Const ID_REGISTER:Int = 22
 	
 	Const ID_JOINREQUEST:Int = 30
 	Const ID_UPDATEOBJ:Int = 35
@@ -123,8 +124,8 @@ Type TBaseClient Extends TStream Abstract
 	
 	Method SendPacket:Int(pid:Int, data:String)
 		If Eof() Then Return False
-? Threaded
 		
+? Threaded
 		Local packetThread:TThread = TThread.Create(SendPacketToStreamThread, New PPacket.Create(Self, pid, data))
 		Local startingMS:Int = MilliSecs()
 		While packetThread.Running()
@@ -557,6 +558,30 @@ Type TServerClient Extends TBaseClient
 		'	TPrint("[INFO] " + GetIPAddressAsString() + "::" + name + " disconnected")
 	End Method
 	
+	Method DealWithRegister(packetArray:String[])
+		AccountKey.LoadFile()
+		Account.LoadFile() '' Get the latest!
+		Local key:String = packetArray[0].ToLower()
+		Local wname:String = Account.cleanName(packetArray[1])
+		Local wpass:String = packetArray[2]
+		
+		If Account.Find(wname) <> Null Then
+			SendText("[Server] Username '" + wname + "' already exists!", 1)
+		ElseIf AccountKey.Find(key) = Null Then
+			SendText("[Server] The provided key does not exist.", 1)
+		Else
+			Local acc:Account = Account.Create(wname, wpass, key)
+			Local accKey:AccountKey = AccountKey.Find(key)
+			acc.stat = accKey.stat
+			AccountKey.Remove(accKey)
+			Account.SaveToFile()
+			AccountKey.SaveToFile()
+			
+			TPrint "[INFO] Client registered account '" + wname + "' with password '" + wpass + "' using key " + key + "!"
+			SendText("[Server] Sucessfully registered '" + wname + "'. You may now log in.", 5)
+		End If
+	End Method
+	
 	Method DealWithLogin(packetArray:String[])
 		Account.LoadFile() '' Get the latest!
 		Local wname:String = Account.cleanName(packetArray[0])'ReadString(ReadInt()))
@@ -759,7 +784,14 @@ Type TServerClient Extends TBaseClient
 				Else
 					DealWithLogin(packetArray)
 				End If
-			'' Send IntIntString
+				
+			Case Packet.ID_REGISTER
+				If packetArray.Length <> 3 Then
+					TPrint("[WARNING] Packet.ID_REGISTER Packet didn't provide enough data: '" + data + "'")
+					SendText("[Server] Invalid Register Data, Please Try Again", 1)
+				Else
+					DealWithRegister(packetArray)
+				End If
 				
 			Case Packet.ID_USERLIST
 				If auth Then
@@ -1025,6 +1057,10 @@ Type TMasterClient Extends TBaseClient
 	
 	Method SendLogin(name:String, pass:String)
 		SendPacket(Packet.ID_LOGIN, name + "`" + preparePassword(pass))
+	End Method
+	
+	Method AttemptRegister(key:String, name:String, pass:String)
+		SendPacket(Packet.ID_REGISTER, key + "`" + name + "`" + preparePassword(pass))
 	End Method
 	
 	Method SyncTGame()

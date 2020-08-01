@@ -11,7 +11,7 @@
             "arch": "auto",
             "platform": "auto",
             "threaded": true,
-            "debug": false,
+            "debug": true,
             "quick": false,
             "execute": false,
             "verbose": false,
