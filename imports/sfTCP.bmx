@@ -562,7 +562,7 @@ Type TServerClient Extends TBaseClient
 		AccountKey.LoadFile()
 		Account.LoadFile() '' Get the latest!
 		Local key:String = packetArray[0].ToLower()
-		Local wname:String = Account.cleanName(packetArray[1])'ReadString(ReadInt()))
+		Local wname:String = Account.cleanName(packetArray[1])
 		Local wpass:String = packetArray[2]
 		
 		If Account.Find(wname) <> Null Then
@@ -578,7 +578,7 @@ Type TServerClient Extends TBaseClient
 			AccountKey.SaveToFile()
 			
 			TPrint "[INFO] Client registered account '" + wname + "' with password '" + wpass + "' using key " + key + "!"
-			SendText("[Server] Sucessfully registered '" + wname + "'. You may now log in.", 1)
+			SendText("[Server] Sucessfully registered '" + wname + "'. You may now log in.", 5)
 		End If
 	End Method
 	

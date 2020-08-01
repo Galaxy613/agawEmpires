@@ -296,7 +296,7 @@ Type AccountKey
 	
 	Function Remove(acc:AccountKey)
 		accountKeyList.Remove( acc )
-	EndFunction
+	End Function
 	
 	Function LoadFile(filename:String = "keys.dat")
 		Local Handle:TStream = ReadFile(filename)

@@ -4,8 +4,6 @@ This is just a fancy way to display messages to the client user.
 
 end rem
 
-'Import "Toolbox.bmx"
-
 Type _Msg
 	Field txt:String = "", clr = 0, ms:Int
 	Global cmax:Int = 255, cmin:Int = 96
@@ -316,7 +314,7 @@ End Type
 Type sButton
 	Field enabled = True, hit = False, show = True
 	Field drawWhenEmpty = True
-	Field Text$="Text Here: ",currentString:String, isPassword:Int = False
+	Field Text$="Text Here", currentString:String, isPassword:Int = False
 	Field cmd:String, arg:String, typ:Int
 	Field x:Int, y:Int
 	
